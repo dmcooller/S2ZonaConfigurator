@@ -1,0 +1,117 @@
+{
+  "version": "1.0",
+  "description": "Modifies various game parameters",
+  "actions": [
+    {
+      "type": "Modify",
+      "file": "Stalker2/Content/GameLite/GameData/CoreVariables.cfg",
+      "path": "DefaultConfig::RealToGameTimeCoef",
+      "value": 12,
+      "defaultValue": 24,
+      "comment": "The day is 2 hours of real time"
+    },
+    {
+      "type": "Modify",
+      "file": "Stalker2/Content/GameLite/GameData/CoreVariables.cfg",
+      "path": "DefaultConfig",
+      "values": {
+        "ALifeGridUpdateDelay": 6.0,
+        "StartYear": 2024
+      }
+    },
+    {
+      "type": "Add",
+      "file": "Stalker2/Content/GameLite/GameData/CoreVariables.cfg",
+      "path": "DefaultConfig::NewStuff",
+      "value": 1.6,
+      "defaultValue": 0,
+      "comment": "Test"
+    },
+    {
+      "type": "RemoveLine",
+      "file": "Stalker2/Content/GameLite/GameData/CoreVariables.cfg",
+      "path": "DefaultConfig::StartMinute",
+      "comment": "Test"
+    },
+    {
+      "type": "RemoveStruct",
+      "file": "Stalker2/Content/GameLite/GameData/EffectPrototypes.cfg",
+      "path": "RadiationMechanics::MechanicsEffect::ConditionEffects::LightRadiation::ApplicableEffects"
+    },
+    {
+      "type": "Replace",
+      "file": "Stalker2/Content/GameLite/GameData/ItemPrototypes/ArtifactPrototypes.cfg",
+      "value": {
+        "old": "EEffectDisplayType::EffectLevel",
+        "new": "EEffectDisplayType::Value"
+      },
+      "comment": "ShowItemsValuesArtifactsOnly"
+    },
+    {
+      "type": "AddStruct",
+      "file": "Stalker2/Content/GameLite/GameData/ItemGeneratorPrototypes/Gamepass_ItemGenerators.cfg",
+      "path": "GamePass_Stash_ItemGenerator_Cheap::ItemGenerator::[1]",
+      "structures": [
+        {
+          "ItemPrototypeFactor": {
+            "ItemTag": "EItemTag::Helmet",
+            "Factor": 1.5
+          }
+        },
+        {
+          "ItemPrototypeFilter": {
+            "ItemTag": "EItemTag::Weapon",
+            "Filter": true
+          }
+        },
+        {
+          "PriceRange": {
+            "Min": 1000,
+            "Max": 5000
+          }
+        }
+      ]
+    },
+    {
+      "type": "AddStruct",
+      "file": "Stalker2/Content/GameLite/GameData/ItemGeneratorPrototypes/Gamepass_ItemGenerators.cfg",
+      "path": "GamePass_Stash_ItemGenerator_Cheap::ItemGenerator::[0]::PossibleItems::[5]",
+      "value": {
+        "ItemPrototypeSID": "EArtifactFlash",
+        "Chance": 0.0018,
+        "MinCount": 1,
+        "MaxCount": 1
+      }
+    },
+    {
+      "type": "AddStruct",
+      "file": "Stalker2/Content/GameLite/GameData/ItemGeneratorPrototypes/Gamepass_ItemGenerators.cfg",
+      "path": "GamePass_Stash_ItemGenerator_Cheap::ItemGenerator::[0]::PossibleItems::[6]",
+      "value": {
+        "ItemPrototypeSID": "EArtifactFlas2",
+        "Chance": 0.2018,
+        "MinCount": 2,
+        "MaxCount": 2
+      }
+    },
+    {
+      "type": "AddStruct",
+      "file": "Stalker2/Content/GameLite/GameData/ItemGeneratorPrototypes/Gamepass_ItemGenerators.cfg",
+      "path": "GamePass_Stash_ItemGenerator_Common_Var1::ItemGenerator::[0]::PossibleItems",
+      "structures": [
+        {
+          "ItemPrototypeSID": "EArtifactFlash",
+          "Chance": 0.0018,
+          "MinCount": 1,
+          "MaxCount": 1
+        },
+        {
+          "ItemPrototypeSID": "EArtifactSnowflake",
+          "Chance": 0.0018,
+          "MinCount": 1,
+          "MaxCount": 1
+        }
+      ]
+    }
+  ]
+ }

@@ -361,3 +361,9 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# User settings
+appsettings.Mine.json
+
+S2ZonaConfigurator/mods/*
+!S2ZonaConfigurator/mods/$Example.json
