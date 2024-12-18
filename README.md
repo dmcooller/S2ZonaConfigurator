@@ -4,9 +4,9 @@
 
 The application's primary goal is to simplify the process of applying mods to the game. The main disadvantages of the current modding system are:
 - One mod can overwrite the changes of another mod.
-- After every game update, moders need to update their mods to work with the new version of the game.
+- After every game update, mod makers need to update their mods to work with the new version of the game.
 
-This tool solves this problem by extracting fresh config files from the game and packing all the mods into a single PAK file.
+This tool solves these problems by extracting fresh config files from the game and packing all the mods into a single PAK file.
 
 ## Features
 - Support mods in JSON format
@@ -39,7 +39,7 @@ Notes:
 
 ### Usage
 
-1. Place your mods in the `mods` folder. It should be in JSON format, not PAK files!
+1. Place your mods in the `mods` folder. It should be in JSON format, not PAK files! Some mods can be found [here](https://github.com/dmcooller/S2ZonaMods).
 2. Run the application by double-clicking on the `S2ZonaConfigurator.exe` file.
 
 You will see the output in the console. If everything is successful, the output should be something like this:
