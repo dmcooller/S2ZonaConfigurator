@@ -145,7 +145,7 @@ public class PakManager : IPakManager
 
         try
         {
-            using PakFile pakFile = PakFile.Create(fileName, mountPoint);
+            using PakFile pakFile = PakFile.Create(fileName, mountPoint, CompressionMethod.Zlib);
             // Files to add to the PAK 
             var files = Directory.GetFiles(modsPath, "*", SearchOption.AllDirectories);
 
