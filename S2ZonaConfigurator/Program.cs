@@ -23,6 +23,11 @@ try
 
     // Parse mod files
     var modDataMap = modProcessor.ParseModFiles(appConfig.Paths.ModsDirectory);
+    if (modDataMap.Count == 0)
+    {
+        Printer.PrintInfoSection($"No mods to apply. Make sure you have mods in `{appConfig.Paths.ModsDirectory}` directory");
+        return;
+    }
     // Extract a list of required config file paths
     var requiredConfigs = ModProcessor.GetRequiredConfigFiles(modDataMap);
 

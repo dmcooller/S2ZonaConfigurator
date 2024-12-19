@@ -145,10 +145,15 @@ public class PakManager : IPakManager
 
         try
         {
-            using PakFile pakFile = PakFile.Create(fileName, mountPoint, CompressionMethod.Zlib);
             // Files to add to the PAK 
             var files = Directory.GetFiles(modsPath, "*", SearchOption.AllDirectories);
+            if (files.Length == 0)
+            {
+                Printer.PrintInfoSection("No files to add to the PAK. PAK creation skipped");
+                return;
+            }
 
+            using PakFile pakFile = PakFile.Create(fileName, mountPoint, CompressionMethod.Zlib);
             foreach (var file in files)
             {
                 // Exclude the mods directory from the path
