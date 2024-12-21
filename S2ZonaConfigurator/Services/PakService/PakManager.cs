@@ -75,7 +75,7 @@ public class PakManager : IPakManager
     private void TestAes()
     {
         if (_provider!.MountedVfs.Count == 0)
-            throw new Exception("AES key is invalid");
+            throw new Exception("Failed to mount PAK files. AES may be incorrect");
     }
 
     public async Task ExtractConfigFile(string configPath)

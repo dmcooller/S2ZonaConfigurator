@@ -24,15 +24,12 @@ This tool solves these problems by extracting fresh config files from the game a
 {
   "AppConfig": {
     "Game": {
-      "GamePath": "C:\\Steam\\GameFolder",
-      "AesKey": "0x33A604DF49A07FFD4A4C919962161F5C35A134D37EFA98DB37A34F6450D7D386"
+      "GamePath": "D:\\Steam\\steamapps\\common\\S.T.A.L.K.E.R. 2 Heart of Chornobyl"
     }
   }
 }
   ```
     `GamePath` - path to the game folder. All the backslashes should be escaped with another backslash. So you should write `\\` instead of `\`.
-
-    `AesKey` - encryption key for the PAK file. You don't need to touch it, but if the devs change it, you can update it here.
 
 Notes:
 - You can use the `appsettings.json` file as a template and update any value you want in `appsettings.Mine.json`. The application will use the values from `appsettings.Mine.json` if they are present.
