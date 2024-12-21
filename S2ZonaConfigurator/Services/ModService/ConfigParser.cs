@@ -342,7 +342,8 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
         {
             var parentPath = pathComponents[..^1];
             var (startIdx, endIdx) = FindStructurePosition(_currentContent, parentPath);
-            if (!IsStructureBoundsValid(parentPath, startIdx, endIdx)) return;
+            if (!IsStructureBoundsValid(parentPath, startIdx, endIdx)) 
+                throw new ArgumentOutOfRangeException($"Failed to find the structure's bounds. {string.Join("::", parentPath)} startIdx = {startIdx} endIdx = {endIdx}");
 
             var lastComponent = pathComponents[^1];
             var targetLine = -1;
@@ -380,7 +381,8 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
         try
         {
             var (startIdx, endIdx) = FindStructurePosition(_currentContent, pathComponents);
-            if (!IsStructureBoundsValid(pathComponents, startIdx, endIdx)) return;
+            if (!IsStructureBoundsValid(pathComponents, startIdx, endIdx))
+                throw new ArgumentOutOfRangeException($"Failed to find the structure's bounds. {string.Join("::", pathComponents)} startIdx = {startIdx} endIdx = {endIdx}");
 
 
             foreach (var (key, newValue) in values)
@@ -423,7 +425,9 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
         {
             var parentPath = pathComponents[..^1];
             var (startIdx, endIdx) = FindStructurePosition(_currentContent, parentPath);
-            if (!IsStructureBoundsValid(parentPath, startIdx, endIdx)) return;
+            if (!IsStructureBoundsValid(parentPath, startIdx, endIdx))
+                throw new ArgumentOutOfRangeException($"Failed to find the structure's bounds. {string.Join("::", parentPath)} startIdx = {startIdx} endIdx = {endIdx}");
+
 
             var newLines = new List<string>();
             newLines.Add($"   {pathComponents[^1]} = {FormatValue(newValue)}");
@@ -452,7 +456,8 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
         {
             var parentPath = pathComponents[..^1];
             var (startIdx, endIdx) = FindStructurePosition(_currentContent, parentPath);
-            if (!IsStructureBoundsValid(parentPath, startIdx, endIdx)) return;
+            if (!IsStructureBoundsValid(parentPath, startIdx, endIdx))
+                throw new ArgumentOutOfRangeException($"Failed to find the structure's bounds. {string.Join("::", parentPath)} startIdx = {startIdx} endIdx = {endIdx}");
 
             for (var i = startIdx; i <= endIdx; i++)
             {
@@ -481,7 +486,8 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
         try
         {
             var (startIdx, endIdx) = FindStructurePosition(_currentContent, pathComponents);
-            if (!IsStructureBoundsValid(pathComponents, startIdx, endIdx)) return;
+            if (!IsStructureBoundsValid(pathComponents, startIdx, endIdx))
+                throw new ArgumentOutOfRangeException($"Failed to find the structure's bounds. {string.Join("::", pathComponents)} startIdx = {startIdx} endIdx = {endIdx}");
 
             // If we found the structure, we need to remove it and its ending struct.end
             if (startIdx >= 0 && startIdx < _currentContent.Count)
@@ -504,7 +510,8 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
         {
             var parentPath = pathComponents[..^1];
             var (startIdx, endIdx) = FindStructurePosition(_currentContent, parentPath);
-            if (!IsStructureBoundsValid(parentPath, startIdx, endIdx)) return;
+            if (!IsStructureBoundsValid(parentPath, startIdx, endIdx))
+                throw new ArgumentOutOfRangeException($"Failed to find the structure's bounds. {string.Join("::", parentPath)} startIdx = {startIdx} endIdx = {endIdx}");
 
             var lastComponent = pathComponents[^1];
 
@@ -543,7 +550,8 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
         try
         {
             var (startIdx, endIdx) = FindStructurePosition(_currentContent, parentPath);
-            if (!IsStructureBoundsValid(parentPath, startIdx, endIdx)) return;
+            if (!IsStructureBoundsValid(parentPath, startIdx, endIdx))
+                throw new ArgumentOutOfRangeException($"Failed to find the structure's bounds. {string.Join("::", parentPath)} startIdx = {startIdx} endIdx = {endIdx}");
 
             // Find the last array index in the current structure
             int lastIndex = -1;
@@ -590,7 +598,8 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
         try
         {
             var (startIdx, endIdx) = FindStructurePosition(_currentContent, parentPath);
-            if (!IsStructureBoundsValid(parentPath, startIdx, endIdx)) return;
+            if (!IsStructureBoundsValid(parentPath, startIdx, endIdx))
+                throw new ArgumentOutOfRangeException($"Failed to find the structure's bounds. {string.Join("::", parentPath)} startIdx = {startIdx} endIdx = {endIdx}");
 
             foreach (var structure in structures)
             {
