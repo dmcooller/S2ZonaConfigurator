@@ -17,7 +17,7 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
     private const int IndentSize = 3;
     private const string STRUCT_BEGIN_LABEL = "struct.begin";
     private const string STRUCT_END_LABEL = "struct.end";
-    private static readonly string[] structBeginSeparator = [" : ", STRUCT_BEGIN_LABEL];
+    private static readonly string[] structBeginSeparator = [": ", STRUCT_BEGIN_LABEL];
 
 
     [System.Text.RegularExpressions.GeneratedRegex(@"^\[(\d+)\]")]
