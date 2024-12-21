@@ -6,11 +6,13 @@ using S2ZonaConfigurator.Interfaces.Services;
 using S2ZonaConfigurator.Models;
 using S2ZonaConfigurator.Services.ModService;
 using S2ZonaConfigurator.Services.PakService;
+using System.Diagnostics.CodeAnalysis;
 
 
 namespace S2ZonaConfigurator;
 public static class StartupServices
 {
+    [RequiresUnreferencedCode("Calls Microsoft.Extensions.DependencyInjection.OptionsConfigurationServiceCollectionExtensions.Configure<TOptions>(IConfiguration)")]
     private static IServiceCollection AddAppConfiguration(
         this IServiceCollection services,
         string[] args)

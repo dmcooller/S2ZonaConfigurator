@@ -4,23 +4,10 @@ using S2ZonaConfigurator.Interfaces.Services;
 using S2ZonaConfigurator.Models;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 
 namespace S2ZonaConfigurator.Services.ModService;
 
-// Use the Source Genarator to be able to use trimming
-[JsonSourceGenerationOptions(
-    WriteIndented = true,
-    PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
-    GenerationMode = JsonSourceGenerationMode.Default,
-    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
-[JsonSerializable(typeof(ModData))]
-[JsonSerializable(typeof(Dictionary<string, object>))]
-[JsonSerializable(typeof(object[]))]
-internal partial class ModJsonContext : JsonSerializerContext
-{
-}
 
 public class ModProcessor(ILogger<ModProcessor> logger, IConfigParser parser) : IModProcessor
 {
@@ -80,7 +67,7 @@ public class ModProcessor(ILogger<ModProcessor> logger, IConfigParser parser) : 
             try
             {
                 var modJson = File.ReadAllText(modFile);
-                var modData = JsonSerializer.Deserialize(modJson, ModJsonContext.Default.ModData);
+                var modData = JsonSerializer.Deserialize(modJson, ConfigJsonContext.Default.ModData);
 
                 if (modData != null)
                 {

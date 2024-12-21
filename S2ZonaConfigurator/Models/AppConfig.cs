@@ -1,4 +1,5 @@
 ﻿namespace S2ZonaConfigurator.Models;
+
 public class AppConfig
 {
     public PathsConfig Paths { get; set; } = new();
@@ -18,8 +19,8 @@ public class PathsConfig
 
 public class GameConfig
 {
-    public string GamePath { get; set; }
-    public string AesKey { get; set; }
+    public string GamePath { get; set; } = string.Empty;
+    public string AesKey { get; set; } = string.Empty;
 }
 
 public class OptionsConfig
