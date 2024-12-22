@@ -364,7 +364,7 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
 
             if (targetLine == -1)
             {
-                Printer.PrintErrorMessage($"Failed to find the target line {lastComponent}");
+                throw new KeyNotFoundException($"Failed to find the target line {lastComponent}");
             }
 
             _currentContent[targetLine] = $"{properIndentation}{lastComponent} = {FormatValue(newValue)}";
@@ -403,7 +403,7 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
 
                 if (targetLine == -1)
                 {
-                    Printer.PrintErrorMessage($"Failed to find the target line {pathComponents[^1]}");
+                    throw new KeyNotFoundException($"Failed to find the target line {key}");
                 }
                 else
                 {
