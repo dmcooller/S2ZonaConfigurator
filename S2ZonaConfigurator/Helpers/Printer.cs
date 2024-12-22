@@ -14,15 +14,26 @@ public static class Printer
     private const string BORDER_HORIZONTAL = "═";
     private const int BORDER_WIDTH = 105;
 
-    private static void PrintBorder(string borderChar) =>
+    private static void PrintBorder(string borderChar) {
+        Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine($"{borderChar}{new string(BORDER_HORIZONTAL[0], BORDER_WIDTH)}");
+    }
+
+    private static void PrintSegmentBorder()
+    {
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.Write($"{BORDER_VERTICAL} ");
+    }
 
     private static void PrintLine(string text, ConsoleColor? color = null)
     {
+        PrintSegmentBorder();
+
         if (color.HasValue)
             Console.ForegroundColor = color.Value;
+        else Console.ForegroundColor = ConsoleColor.White;
 
-        Console.WriteLine($"{BORDER_VERTICAL} {text}");
+        Console.WriteLine($"{text}");
 
         if (color.HasValue)
             Console.ResetColor();
@@ -31,7 +42,6 @@ public static class Printer
     private static void PrintSection(string title, Action contentPrinter)
     {
         Console.WriteLine();
-        Console.ForegroundColor = ConsoleColor.Cyan;
 
         PrintBorder(BORDER_TOP);
         PrintLine(title);
@@ -41,15 +51,16 @@ public static class Printer
 
         contentPrinter();
 
-        Console.ForegroundColor = ConsoleColor.Cyan;
         PrintBorder(BORDER_BOTTOM);
         Console.ResetColor();
     }
 
-    private static void PrintColoredField(string label, string value, ConsoleColor valueColor)
+    public static void PrintColoredField(string label, string value, ConsoleColor valueColor)
     {
+        PrintSegmentBorder();
+
         Console.ForegroundColor = ConsoleColor.White;
-        Console.Write($"{BORDER_VERTICAL} {label}: ");
+        Console.Write($"{label}: ");
         Console.ForegroundColor = valueColor;
         Console.WriteLine(value);
         Console.ResetColor();
@@ -61,9 +72,11 @@ public static class Printer
 
     public static void PrintActionProgress(int currentAction, int totalActions, ModActionData actionData)
     {
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.Write($"{BORDER_VERTICAL} Action [{currentAction}/{totalActions}] ");
+        PrintSegmentBorder();
 
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.Write($"Action [{currentAction}/{totalActions}] ");
+        
         PrintColoredSegments(
         [
             ("Type: ", ConsoleColor.White),
@@ -74,7 +87,7 @@ public static class Printer
         {
             PrintColoredSegments(
             [
-                (" Path: ", ConsoleColor.White),
+                ("Path: ", ConsoleColor.White),
                 (actionData.Path, ConsoleColor.DarkCyan)
             ]);
         }
@@ -83,7 +96,7 @@ public static class Printer
         {
             PrintColoredSegments(
                 [
-                    (" Value: ", ConsoleColor.White),
+                    ("Value: ", ConsoleColor.White),
                     (actionData.Value.ToString(), ConsoleColor.DarkCyan)
                 ]);
         }
@@ -91,8 +104,10 @@ public static class Printer
         Console.WriteLine();
     }
 
-    private static void PrintColoredSegments(IEnumerable<(string text, ConsoleColor color)> segments)
+    public static void PrintColoredSegments(IEnumerable<(string text, ConsoleColor color)> segments)
     {
+        PrintSegmentBorder();
+
         foreach (var (text, color) in segments)
         {
             Console.ForegroundColor = color;
@@ -108,7 +123,6 @@ public static class Printer
 
         PrintLine("", color);
         PrintLine($"Status: {status}", color);
-        Console.ForegroundColor = ConsoleColor.Cyan;
         PrintBorder(BORDER_BOTTOM);
         Console.ResetColor();
     }
