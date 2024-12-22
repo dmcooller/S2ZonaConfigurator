@@ -12,7 +12,8 @@ This tool solves these problems by extracting fresh config files from the game a
 - Support mods in JSON format
 - Automatically unpack necessary config files from the game
 - Eliminate the mods conflicts by packing them into a single PAK file
-- Generate a single PAK file with a changelog file (changelog is optional)
+- Copy additional files like assets to the **~mods** folder
+- Generate a changelog file (optional)
 
 ## For Users
 
@@ -297,3 +298,24 @@ There are two ways to use it:
     }
     ```
     This will use a regex pattern to find all the `Weight` values and replace them with `0`.
+
+### Additional Features
+
+#### Copy Assets
+
+If your mod requires additional files like textures, sounds, etc., you have two options to include them in the mod:
+
+1. Create a folder with the same name as the mod file and place all the necessary files there. The application will copy all the files from the folder to the `~mods` folder.
+2. Create a zip archive with the same name as the mod file and place all the necessary files there. The application will extract all the files from the archive to the `~mods` folder.
+
+Imprtant thing is that a json mod file is necessary even if it doesn't change any config files. Just create an json file like this:
+```json
+{
+  "version": "1.0",
+  "description": "This mod only copies assets",
+  "author": "Me",
+  "actions": []
+}
+```
+
+Keep in mind, that it won't pack the files into the .pak, .ucas, .utoc files. It will just copy them to the `~mods` folder. But it's actually fine, because we can't merge the assets files.

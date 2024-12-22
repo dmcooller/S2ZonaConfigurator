@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using S2ZonaConfigurator.Helpers;
 using S2ZonaConfigurator.Interfaces.Services;
 using S2ZonaConfigurator.Models;
+using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
 
@@ -9,15 +11,18 @@ using System.Text.Json;
 namespace S2ZonaConfigurator.Services.ModService;
 
 
-public class ModProcessor(ILogger<ModProcessor> logger, IConfigParser parser) : IModProcessor
+public class ModProcessor(ILogger<ModProcessor> logger, IOptions<AppConfig> config, IConfigParser parser) : IModProcessor
 {
-    private readonly ILogger<ModProcessor> _logger = logger;
+    private readonly ILogger<ModProcessor> _logger = logger; 
+    private readonly AppConfig _config = config.Value;
     private readonly IConfigParser _parser = parser;
 
 
     private int _totalModsProcessed = 0;
     private int _modsSucess = 0;
     private int _modsFailed = 0;
+
+    private readonly string _pakNamePrefix = Path.GetFileNameWithoutExtension(config.Value.Paths.OutputPakName);
 
     public void ProcessMod(string modFile, ModData modData)
     {
@@ -44,6 +49,9 @@ public class ModProcessor(ILogger<ModProcessor> logger, IConfigParser parser) : 
                 _parser.SaveFile();
             }
 
+            // Copy additional files if they exist
+            CopyAdditionalFiles(modFile);
+
             Printer.PrintModFooter();
             _modsSucess++;
         }
@@ -60,7 +68,7 @@ public class ModProcessor(ILogger<ModProcessor> logger, IConfigParser parser) : 
         var modDataMap = new Dictionary<string, ModData>();
         // Get all *.json files in the mods directory but skip files with names that start with a $ sign
         var modFiles = Directory.GetFiles(ModsDirectory, "*.json", SearchOption.AllDirectories)
-            .Where(file => !Path.GetFileName(file).StartsWith('$'));
+            .Where(file => !Path.GetFileName(file).StartsWith('$')).OrderBy(file => Path.GetFileName(file));
 
         foreach (var modFile in modFiles)
         {
@@ -138,5 +146,90 @@ public class ModProcessor(ILogger<ModProcessor> logger, IConfigParser parser) : 
             _logger.LogError(ex, "Failed to generate changelog");
             // Don't throw - we don't want to fail the whole process if changelog generation fails
         }
+    }
+
+    private void CopyAdditionalFiles(string modFile)
+    {
+        try
+        {
+            // Get the mod name (same as json file without extension)
+            string modName = Path.GetFileNameWithoutExtension(modFile);
+            string modDirPath = Path.GetDirectoryName(modFile)!;
+
+            // Get the destination path (our ~mods folder)
+            string modsDestPath = Path.Combine(_config.Game.GamePath, _config.Paths.PaksPath, "~mods");
+
+            // Try folder first
+            string modFolderPath = Path.Combine(modDirPath, modName);
+            if (Directory.Exists(modFolderPath))
+            {
+                CopyFromFolder(modFolderPath, modsDestPath, _pakNamePrefix);
+                _logger.LogInformation("Successfully copied additional files from folder for mod: {ModName}", modName);
+            }
+
+            // Try ZIP file
+            string modZipPath = Path.Combine(modDirPath, $"{modName}.zip");
+            if (File.Exists(modZipPath))
+            {
+                ExtractFromZip(modZipPath, modsDestPath, _pakNamePrefix);
+                _logger.LogInformation("Successfully extracted additional files from ZIP for mod: {ModName}", modName);
+            }
+
+            // If neither exists, log debug message
+            if (!Directory.Exists(modFolderPath) && !File.Exists(modZipPath))
+            {
+                _logger.LogDebug("No additional files (folder or ZIP) found for mod: {ModName}", modName);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing additional files for mod: {ModFile}", modFile);
+            throw;
+        }
+    }
+
+    private void CopyFromFolder(string sourceFolderPath, string destinationBasePath, string pakNamePrefix)
+    {
+        foreach (var file in Directory.GetFiles(sourceFolderPath, "*.*", SearchOption.AllDirectories))
+        {
+            string relativePath = Path.GetRelativePath(sourceFolderPath, file);
+            string relativeDir = Path.GetDirectoryName(relativePath) ?? string.Empty;
+            string fileName = Path.GetFileName(relativePath);
+            string prefixedFileName = $"{pakNamePrefix}_{fileName}";
+            string destinationPath = Path.Combine(destinationBasePath, relativeDir, prefixedFileName);
+
+            Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+
+            File.Copy(file, destinationPath, true);
+
+            _logger.LogDebug("Copied file: {Source} to {Destination}", file, destinationPath);
+        }
+
+        Printer.PrintColoredField("Copied folder", Path.GetFileName(sourceFolderPath), ConsoleColor.DarkCyan);
+    }
+
+    private void ExtractFromZip(string zipPath, string destinationBasePath, string pakNamePrefix)
+    {
+        using var archive = ZipFile.OpenRead(zipPath);
+        foreach (var entry in archive.Entries)
+        {
+            // Skip directories
+            if (string.IsNullOrEmpty(entry.Name))
+                continue;
+
+            string relativeDir = Path.GetDirectoryName(entry.FullName) ?? string.Empty;
+            string fileName = Path.GetFileName(entry.FullName);
+            string prefixedFileName = $"{pakNamePrefix}_{fileName}";
+            string destinationPath = Path.Combine(destinationBasePath, relativeDir, prefixedFileName);
+            string? destinationDir = Path.GetDirectoryName(destinationPath);
+
+            if (destinationDir != null)
+            {
+                Directory.CreateDirectory(destinationDir);
+                entry.ExtractToFile(destinationPath, true);
+                _logger.LogDebug("Extracted file: {Source} to {Destination}", entry.FullName, destinationPath);
+            }
+        }
+        Printer.PrintColoredField("Extracted ZIP", Path.GetFileName(zipPath), ConsoleColor.DarkCyan);
     }
 }
