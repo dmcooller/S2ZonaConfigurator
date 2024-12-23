@@ -342,22 +342,22 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
         {
             var parentPath = pathComponents[..^1];
             var (startIdx, endIdx) = FindStructurePosition(_currentContent, parentPath);
-            if (!IsStructureBoundsValid(parentPath, startIdx, endIdx)) 
+            if (!IsStructureBoundsValid(parentPath, startIdx, endIdx))
                 throw new ArgumentOutOfRangeException($"Failed to find the structure's bounds. {string.Join("::", parentPath)} startIdx = {startIdx} endIdx = {endIdx}");
 
             var lastComponent = pathComponents[^1];
-            var targetLine = -1;
-            var properIndentation = "";
+            int targetLine = -1;
+            string properIndentation = "";
 
             // Find the target line and calculate proper indentation
             for (var i = startIdx; i <= endIdx; i++)
             {
-                var line = _currentContent[i];
-                var trimmedLine = line.TrimStart();
+                string line = _currentContent[i];
+                string trimmedLine = line.TrimStart();
                 if (trimmedLine.StartsWith($"{lastComponent} ="))
                 {
                     targetLine = i;
-                    properIndentation = line[..(line.Length - trimmedLine.Length)];
+                    properIndentation = new string(' ', line.Length - trimmedLine.Length);
                     break;
                 }
             }
@@ -384,19 +384,19 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
             if (!IsStructureBoundsValid(pathComponents, startIdx, endIdx))
                 throw new ArgumentOutOfRangeException($"Failed to find the structure's bounds. {string.Join("::", pathComponents)} startIdx = {startIdx} endIdx = {endIdx}");
 
-
             foreach (var (key, newValue) in values)
             {
-                var targetLine = -1;
-                var properIndentation = "";
+                int targetLine = -1;
+                string properIndentation = "";
                 for (var i = startIdx; i <= endIdx; i++)
                 {
-                    var line = _currentContent[i];
-                    var trimmedLine = _currentContent[i].Trim();
+                    string line = _currentContent[i];
+                    string trimmedLine = _currentContent[i].TrimStart();
                     if (trimmedLine.StartsWith($"{key} ="))
                     {
                         targetLine = i;
-                        properIndentation = line[..(line.Length - trimmedLine.Length)];
+                        // Create a string with proper amount of spaces
+                        properIndentation = new string(' ', line.Length - trimmedLine.Length);
                         break;
                     }
                 }
