@@ -336,6 +336,20 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
         }
     }
 
+    private (int LineNumber, string Indentation) FindValueLine(int startIdx, int endIdx, string key)
+    {
+        for (var i = startIdx; i <= endIdx; i++)
+        {
+            string line = _currentContent[i];
+            string trimmedLine = line.TrimStart();
+            if (trimmedLine.StartsWith($"{key} ="))
+            {
+                return (i, new string(' ', line.Length - trimmedLine.Length));
+            }
+        }
+        throw new KeyNotFoundException($"Failed to find the target line {key}");
+    }
+
     private void ModifyValue(List<string> pathComponents, object? newValue)
     {
         try
@@ -346,27 +360,7 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
                 throw new ArgumentOutOfRangeException($"Failed to find the structure's bounds. {string.Join("::", parentPath)} startIdx = {startIdx} endIdx = {endIdx}");
 
             var lastComponent = pathComponents[^1];
-            int targetLine = -1;
-            string properIndentation = "";
-
-            // Find the target line and calculate proper indentation
-            for (var i = startIdx; i <= endIdx; i++)
-            {
-                string line = _currentContent[i];
-                string trimmedLine = line.TrimStart();
-                if (trimmedLine.StartsWith($"{lastComponent} ="))
-                {
-                    targetLine = i;
-                    properIndentation = new string(' ', line.Length - trimmedLine.Length);
-                    break;
-                }
-            }
-
-            if (targetLine == -1)
-            {
-                throw new KeyNotFoundException($"Failed to find the target line {lastComponent}");
-            }
-
+            var (targetLine, properIndentation) = FindValueLine(startIdx, endIdx, lastComponent);
             _currentContent[targetLine] = $"{properIndentation}{lastComponent} = {FormatValue(newValue)}";
         }
         catch (Exception ex)
@@ -386,29 +380,8 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
 
             foreach (var (key, newValue) in values)
             {
-                int targetLine = -1;
-                string properIndentation = "";
-                for (var i = startIdx; i <= endIdx; i++)
-                {
-                    string line = _currentContent[i];
-                    string trimmedLine = _currentContent[i].TrimStart();
-                    if (trimmedLine.StartsWith($"{key} ="))
-                    {
-                        targetLine = i;
-                        // Create a string with proper amount of spaces
-                        properIndentation = new string(' ', line.Length - trimmedLine.Length);
-                        break;
-                    }
-                }
-
-                if (targetLine == -1)
-                {
-                    throw new KeyNotFoundException($"Failed to find the target line {key}");
-                }
-                else
-                {
-                    _currentContent[targetLine] = $"{properIndentation}{key} = {FormatValue(newValue)}";
-                }
+                var (targetLine, properIndentation) = FindValueLine(startIdx, endIdx, key);
+                _currentContent[targetLine] = $"{properIndentation}{key} = {FormatValue(newValue)}";
             }
         }
         catch (Exception ex)
