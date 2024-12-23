@@ -1,5 +1,9 @@
 # Changelog 
 
+## [0.0.4]
+- Speed up the mods processing
+- Fix: Modify multiple values method may produce the wrong indentation in a modified line by duplicating a part of the key name
+
 ## [0.0.3]
 - Add a feature to copy additional files (like assets) to the output directory
 - Handle more cases when the mod should be marked as failed

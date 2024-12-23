@@ -13,6 +13,7 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
     private readonly ILogger<ConfigParser> _logger = logger;
     private readonly AppConfig _config = config.Value;
     private string? _currentFile;
+    private string? _currentActionFile;
     private List<string> _currentContent = [];
     private const int IndentSize = 3;
     private const string STRUCT_BEGIN_LABEL = "struct.begin";
@@ -233,8 +234,11 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
     {
         try
         {
-            if (_currentFile != action.File)
+            if (_currentActionFile != action.File)
+            {
                 LoadFile(Path.Combine(_config.Paths.WorkDirectory, _config.Paths.ModifiedDirectory, action.File));
+                _currentActionFile = action.File;
+            }
 
             // Handle Replace action separately due to different dictionary type requirement
             if (action.Type == ActionType.Replace)

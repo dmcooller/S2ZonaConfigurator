@@ -33,6 +33,7 @@ public class ModProcessor(ILogger<ModProcessor> logger, IOptions<AppConfig> conf
 
             for (int i = 0; i < modData.Actions.Count; i++)
             {
+                string currentModFile = modFile;
                 var actionData = modData.Actions[i];
                 Printer.PrintActionProgress(i + 1, modData.Actions.Count, actionData);
                 var action = new ConfigAction(
@@ -46,7 +47,10 @@ public class ModProcessor(ILogger<ModProcessor> logger, IOptions<AppConfig> conf
                 );
 
                 _parser.ApplyAction(action);
-                _parser.SaveFile();
+
+                // Save the file if the next action is for a different file or if this is the last action
+                if (currentModFile != modFile || i == modData.Actions.Count - 1)
+                    _parser.SaveFile();
             }
 
             // Copy additional files if they exist
@@ -95,6 +99,8 @@ public class ModProcessor(ILogger<ModProcessor> logger, IOptions<AppConfig> conf
 
     public static HashSet<string> GetRequiredConfigFiles(Dictionary<string, ModData> modDataMap)
     {
+        Printer.PrintInfoSection("Extracting required config files from the game");
+
         var requiredFiles = new HashSet<string>();
 
         foreach (var modData in modDataMap.Values)
