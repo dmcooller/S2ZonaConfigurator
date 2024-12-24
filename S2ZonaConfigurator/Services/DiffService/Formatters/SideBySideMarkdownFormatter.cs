@@ -10,32 +10,34 @@ public class SideBySideMarkdownFormatter : BaseFormatter
     {
         await writer.WriteLineAsync($"## 📄 {relativePath}");
         await writer.WriteLineAsync();
-        await writer.WriteLineAsync("| Old | New |");
-        await writer.WriteLineAsync("|-----|-----|");
+        await writer.WriteLineAsync("| Line (Old) | Old | Line (New) | New |");
+        await writer.WriteLineAsync("|------------|-----|------------|-----|");
 
         var lines = GetLinesWithContext(diffModel, config.ContextLines);
 
-        foreach (var (oldLine, newLine) in lines)
+        foreach (var lineInfo in lines)
         {
-            if (oldLine == null && newLine == null)
+            if (lineInfo.OldLine == null && lineInfo.NewLine == null)
             {
-                await writer.WriteLineAsync("|...|...|");
+                await writer.WriteLineAsync("|...|...|...|...|");
                 continue;
             }
 
-            string oldText = oldLine?.Text ?? "";
-            string newText = newLine?.Text ?? "";
+            string oldText = lineInfo.OldLine?.Text ?? "";
+            string newText = lineInfo.NewLine?.Text ?? "";
+            string oldLineNum = lineInfo.OldLineNumber?.ToString() ?? "";
+            string newLineNum = lineInfo.NewLineNumber?.ToString() ?? "";
 
             // Escape pipe characters in markdown table
             oldText = oldText.Replace("|", "\\|");
             newText = newText.Replace("|", "\\|");
 
-            if (oldLine?.Type == ChangeType.Modified || oldLine?.Type == ChangeType.Deleted)
+            if (lineInfo.OldLine?.Type == ChangeType.Modified || lineInfo.OldLine?.Type == ChangeType.Deleted)
                 oldText = $"~~{oldText}~~";
-            if (newLine?.Type == ChangeType.Modified || newLine?.Type == ChangeType.Inserted)
+            if (lineInfo.NewLine?.Type == ChangeType.Modified || lineInfo.NewLine?.Type == ChangeType.Inserted)
                 newText = $"**{newText}**";
 
-            await writer.WriteLineAsync($"| {oldText} | {newText} |");
+            await writer.WriteLineAsync($"| {oldLineNum} | {oldText} | {newLineNum} | {newText} |");
         }
 
         await writer.WriteLineAsync();

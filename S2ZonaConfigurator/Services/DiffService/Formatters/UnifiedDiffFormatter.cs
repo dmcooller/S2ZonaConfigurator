@@ -7,50 +7,6 @@ public class UnifiedDiffFormatter : BaseFormatter
 {
     public override string FileExtension => ".diff";
 
-    public override async Task FormatDiff(StreamWriter writer, SideBySideDiffModel diffModel, string relativePath, DiffConfig config)
-    {
-        await writer.WriteLineAsync($"--- a/{relativePath}");
-        await writer.WriteLineAsync($"+++ b/{relativePath}");
-
-        var lines = GetLinesWithContext(diffModel, config.ContextLines);
-        var hunk = new HunkInfo
-        {
-            HunkNumber = 0,
-            OldLineNumber = 1,
-            NewLineNumber = 1
-        };
-
-        // Group lines into hunks
-        var currentHunkLines = new List<(DiffPiece? OldLine, DiffPiece? NewLine)>();
-
-        for (var i = 0; i < lines.Count; i++)
-        {
-            var (oldLine, newLine) = lines[i];
-
-            if (oldLine == null && newLine == null)
-            {
-                if (currentHunkLines.Count > 0)
-                {
-                    hunk.HunkNumber++;
-                    await WriteHunk(writer, currentHunkLines, hunk);
-                    currentHunkLines.Clear();
-                }
-                continue;
-            }
-
-            currentHunkLines.Add((oldLine, newLine));
-        }
-
-        // Write last hunk if any
-        if (currentHunkLines.Count > 0)
-        {
-            hunk.HunkNumber++;
-            await WriteHunk(writer, currentHunkLines, hunk);
-        }
-
-        await writer.WriteLineAsync();
-    }
-
     private class HunkInfo
     {
         public int OldLineNumber { get; set; }
@@ -65,35 +21,88 @@ public class UnifiedDiffFormatter : BaseFormatter
         public int NewStart { get; set; }
     }
 
+    public override async Task FormatDiff(StreamWriter writer, SideBySideDiffModel diffModel, string relativePath, DiffConfig config)
+    {
+        await writer.WriteLineAsync($"--- a/{relativePath}");
+        await writer.WriteLineAsync($"+++ b/{relativePath}");
+
+        var lines = GetLinesWithContext(diffModel, config.ContextLines);
+        var hunk = new HunkInfo
+        {
+            HunkNumber = 0,
+            OldLineNumber = 1,
+            NewLineNumber = 1
+        };
+
+        // Group lines into hunks
+        var currentHunkLines = new List<LineInfo>();
+
+        for (var i = 0; i < lines.Count; i++)
+        {
+            var lineInfo = lines[i];
+
+            if (lineInfo.OldLine == null && lineInfo.NewLine == null)
+            {
+                if (currentHunkLines.Count > 0)
+                {
+                    hunk.HunkNumber++;
+                    await WriteHunk(writer, currentHunkLines, hunk);
+                    currentHunkLines.Clear();
+                }
+                continue;
+            }
+
+            currentHunkLines.Add(lineInfo);
+        }
+
+        // Write last hunk if any
+        if (currentHunkLines.Count > 0)
+        {
+            hunk.HunkNumber++;
+            await WriteHunk(writer, currentHunkLines, hunk);
+        }
+
+        await writer.WriteLineAsync();
+    }
+
     private static async Task WriteHunk(
         StreamWriter writer,
-        List<(DiffPiece? OldLine, DiffPiece? NewLine)> hunkLines,
+        List<LineInfo> hunkLines,
         HunkInfo hunk)
     {
-        hunk.OldStart = hunk.OldLineNumber;
-        hunk.NewStart = hunk.NewLineNumber;
+        // Calculate hunk start positions
+        hunk.OldStart = hunkLines.First().OldLineNumber ?? hunk.OldLineNumber;
+        hunk.NewStart = hunkLines.First().NewLineNumber ?? hunk.NewLineNumber;
         hunk.HeaderPosition = writer.BaseStream.Position;
 
         // Write placeholder header that will be updated later
         await writer.WriteLineAsync(hunk.HeaderLine);
 
-        foreach (var (oldLine, newLine) in hunkLines)
+        // Track the maximum width needed for line numbers to align output
+        int maxLineNumWidth = hunkLines.Max(l => Math.Max(
+            l.OldLineNumber?.ToString().Length ?? 0,
+            l.NewLineNumber?.ToString().Length ?? 0));
+
+        foreach (var lineInfo in hunkLines)
         {
-            if (oldLine?.Type == ChangeType.Deleted || oldLine?.Type == ChangeType.Modified)
+            if (lineInfo.OldLine?.Type == ChangeType.Deleted || lineInfo.OldLine?.Type == ChangeType.Modified)
             {
-                await writer.WriteLineAsync($"-{oldLine.Text}");
+                string lineNum = lineInfo.OldLineNumber?.ToString().PadLeft(maxLineNumWidth) ?? new string(' ', maxLineNumWidth);
+                await writer.WriteLineAsync($"-[{lineNum}] {lineInfo.OldLine.Text}");
                 hunk.OldLineNumber++;
                 hunk.OldCount++;
             }
-            if (newLine?.Type == ChangeType.Inserted || newLine?.Type == ChangeType.Modified)
+            if (lineInfo.NewLine?.Type == ChangeType.Inserted || lineInfo.NewLine?.Type == ChangeType.Modified)
             {
-                await writer.WriteLineAsync($"+{newLine.Text}");
+                string lineNum = lineInfo.NewLineNumber?.ToString().PadLeft(maxLineNumWidth) ?? new string(' ', maxLineNumWidth);
+                await writer.WriteLineAsync($"+[{lineNum}] {lineInfo.NewLine.Text}");
                 hunk.NewLineNumber++;
                 hunk.NewCount++;
             }
-            else if (oldLine?.Type == ChangeType.Unchanged)
+            else if (lineInfo.OldLine?.Type == ChangeType.Unchanged)
             {
-                await writer.WriteLineAsync($" {oldLine.Text}");
+                string lineNum = lineInfo.OldLineNumber?.ToString().PadLeft(maxLineNumWidth) ?? new string(' ', maxLineNumWidth);
+                await writer.WriteLineAsync($" [{lineNum}] {lineInfo.OldLine.Text}");
                 hunk.OldLineNumber++;
                 hunk.NewLineNumber++;
                 hunk.OldCount++;
@@ -101,7 +110,7 @@ public class UnifiedDiffFormatter : BaseFormatter
             }
         }
 
-        // Update hunk header
+        // Update hunk header with final counts
         var currentPosition = writer.BaseStream.Position;
         writer.BaseStream.Position = hunk.HeaderPosition;
         await writer.WriteLineAsync(hunk.HeaderLine);

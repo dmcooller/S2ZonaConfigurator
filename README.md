@@ -66,8 +66,14 @@ Just some more notes on the usage:
 - You can turn off a mod by adding `$` at the beginning of the mod file name. For example, `$super_mod.json` will be ignored
 - Mods can be placed in subfolders of the `mods` folder. The application will process them all
 - The application produces a changelog file in the `~mods` folder. You can turn it off by setting `OutputChangelogFile` to `false` in the `appsettings.Mine.json` file. (See the `appsettings.json` file for more details)
-- The application can generate a `diff` file with the changes made by the mods. You can turn it on by setting `GenerateDiffReport` to `true` in the `appsettings.Mine.json` file. You will get `diff_report.md` in the root folder. (See the `appsettings.json` file for more details)
-- `diff` output format can be changed in `DiffConfig->DiffFormat` in the `appsettings.Mine.json` file. Possible values are `GitHubMarkdown`, `SideBySideMarkdown`, `Unified`, `HTML`
+
+#### Diff
+
+The application can generate a `diff` file with the changes made by the mods. You can turn it on by setting `GenerateDiffReport` to `true` in the `appsettings.Mine.json` file.
+
+Additionally, you can change:
+- The `diff` output format in `DiffConfig->DiffFormat` in the `appsettings.Mine.json` file. Possible values are `GitHubMarkdown`, `SideBySideMarkdown`, `Unified`, `HTML`.
+- The content size of the `diff` file in `DiffConfig->ContextLines` in the `appsettings.Mine.json` file. The default value is `3`. This will keep the `diff` file small and informative. But you can set it to `-1` to include the whole file content.
 
 ## For Mod Makers
 

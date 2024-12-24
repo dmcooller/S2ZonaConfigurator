@@ -13,20 +13,26 @@ public class GitHubMarkdownFormatter : BaseFormatter
 
         var lines = GetLinesWithContext(diffModel, config.ContextLines);
 
-        foreach (var (oldLine, newLine) in lines)
+        foreach (var lineInfo in lines)
         {
-            if (oldLine == null && newLine == null)
+            if (lineInfo.OldLine == null && lineInfo.NewLine == null)
             {
                 await writer.WriteLineAsync("...");
                 continue;
             }
 
-            if (oldLine?.Type == ChangeType.Deleted || oldLine?.Type == ChangeType.Modified)
-                await writer.WriteLineAsync($"- {oldLine.Text}");
-            if (newLine?.Type == ChangeType.Inserted || newLine?.Type == ChangeType.Modified)
-                await writer.WriteLineAsync($"+ {newLine.Text}");
-            else if (oldLine?.Type == ChangeType.Unchanged)
-                await writer.WriteLineAsync($" {oldLine.Text}");
+            string lineNumber = "";
+            if (lineInfo.OldLineNumber.HasValue || lineInfo.NewLineNumber.HasValue)
+            {
+                lineNumber = $"[{lineInfo.OldLineNumber ?? 0}→{lineInfo.NewLineNumber ?? 0}] ";
+            }
+
+            if (lineInfo.OldLine?.Type == ChangeType.Deleted || lineInfo.OldLine?.Type == ChangeType.Modified)
+                await writer.WriteLineAsync($"- {lineNumber}{lineInfo.OldLine.Text}");
+            if (lineInfo.NewLine?.Type == ChangeType.Inserted || lineInfo.NewLine?.Type == ChangeType.Modified)
+                await writer.WriteLineAsync($"+ {lineNumber}{lineInfo.NewLine.Text}");
+            else if (lineInfo.OldLine?.Type == ChangeType.Unchanged)
+                await writer.WriteLineAsync($"  {lineNumber}{lineInfo.OldLine.Text}");
         }
 
         await writer.WriteLineAsync("```");

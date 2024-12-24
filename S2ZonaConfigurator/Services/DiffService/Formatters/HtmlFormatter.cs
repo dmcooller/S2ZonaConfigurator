@@ -21,7 +21,17 @@ public class HtmlFormatter : BaseFormatter
             .diff-inserted { background-color: #dfd; color: #090; }
             .diff-modified { background-color: #ffd; }
             .diff-separator { color: #999; background: #f0f0f0; text-align: center; }
-            .line-number { color: #999; margin-right: 10px; }
+            .line-number { color: #666; margin-right: 10px; user-select: none; }
+            .line-number-old { color: #900; }
+            .line-number-new { color: #090; }
+            .line-numbers { 
+                display: inline-block;
+                text-align: right;
+                padding-right: 10px;
+                margin-right: 10px;
+                border-right: 1px solid #ddd;
+                min-width: 80px;
+            }
         ");
         await writer.WriteLineAsync("</style>");
         await writer.WriteLineAsync("</head>");
@@ -31,36 +41,37 @@ public class HtmlFormatter : BaseFormatter
         await writer.WriteLineAsync("<div class='diff'>");
 
         var lines = GetLinesWithContext(diffModel, config.ContextLines);
-        var lineNumber = 1;
 
-        foreach (var (oldLine, newLine) in lines)
+        foreach (var lineInfo in lines)
         {
-            if (oldLine == null && newLine == null)
+            if (lineInfo.OldLine == null && lineInfo.NewLine == null)
             {
                 await writer.WriteLineAsync("<div class='diff-separator'>...</div>");
                 continue;
             }
 
-            switch (oldLine?.Type)
+            string lineNumbers = FormatLineNumbers(lineInfo.OldLineNumber, lineInfo.NewLineNumber);
+
+            switch (lineInfo.OldLine?.Type)
             {
                 case ChangeType.Deleted:
-                    await writer.WriteLineAsync($"<div class='diff-deleted'><span class='line-number'>{lineNumber++}</span>- {WebUtility.HtmlEncode(oldLine.Text)}</div>");
+                    await writer.WriteLineAsync($"<div class='diff-deleted'>{lineNumbers}- {WebUtility.HtmlEncode(lineInfo.OldLine.Text)}</div>");
                     break;
                 case ChangeType.Modified:
-                    await writer.WriteLineAsync($"<div class='diff-modified'><span class='line-number'>{lineNumber++}</span>- {WebUtility.HtmlEncode(oldLine.Text)}</div>");
+                    await writer.WriteLineAsync($"<div class='diff-modified'>{lineNumbers}- {WebUtility.HtmlEncode(lineInfo.OldLine.Text)}</div>");
                     break;
             }
 
-            switch (newLine?.Type)
+            switch (lineInfo.NewLine?.Type)
             {
                 case ChangeType.Inserted:
-                    await writer.WriteLineAsync($"<div class='diff-inserted'><span class='line-number'>{lineNumber++}</span>+ {WebUtility.HtmlEncode(newLine.Text)}</div>");
+                    await writer.WriteLineAsync($"<div class='diff-inserted'>{lineNumbers}+ {WebUtility.HtmlEncode(lineInfo.NewLine.Text)}</div>");
                     break;
                 case ChangeType.Modified:
-                    await writer.WriteLineAsync($"<div class='diff-modified'><span class='line-number'>{lineNumber++}</span>+ {WebUtility.HtmlEncode(newLine.Text)}</div>");
+                    await writer.WriteLineAsync($"<div class='diff-modified'>{lineNumbers}+ {WebUtility.HtmlEncode(lineInfo.NewLine.Text)}</div>");
                     break;
                 case ChangeType.Unchanged:
-                    await writer.WriteLineAsync($"<div><span class='line-number'>{lineNumber++}</span>  {WebUtility.HtmlEncode(newLine.Text)}</div>");
+                    await writer.WriteLineAsync($"<div>{lineNumbers}  {WebUtility.HtmlEncode(lineInfo.NewLine.Text)}</div>");
                     break;
             }
         }
@@ -68,5 +79,12 @@ public class HtmlFormatter : BaseFormatter
         await writer.WriteLineAsync("</div>");
         await writer.WriteLineAsync("</body>");
         await writer.WriteLineAsync("</html>");
+    }
+
+    private static string FormatLineNumbers(int? oldLineNumber, int? newLineNumber)
+    {
+        var oldNum = oldLineNumber?.ToString() ?? "";
+        var newNum = newLineNumber?.ToString() ?? "";
+        return $"<span class='line-numbers'><span class='line-number-old'>{oldNum}</span>→<span class='line-number-new'>{newNum}</span></span>";
     }
 }
