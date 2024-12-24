@@ -3,6 +3,7 @@
 ## [0.0.5]
 - Add a diff report generation feature
 - Add an ability specify the file path only once in JSON mods if the file is used in multiple actions
+- Fix: Parsing `[*]` structures
 - Fix: Some issues when last actions may not be applied in mods where multiple files are used
 
 ## [0.0.4]

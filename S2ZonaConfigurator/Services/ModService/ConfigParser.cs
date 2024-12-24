@@ -26,7 +26,7 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
 
     private static List<string> ParsePath(string path)
     {
-        // Split by :: but preserve array notation
+        // Split by :: but preserve array notation and handle wildcard indices
         var components = new List<string>();
         var current = "";
         var inArrayBracket = false;
@@ -57,11 +57,14 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
     private static (int Start, int End) FindStructurePosition(List<string> lines, List<string> pathComponents)
     {
         int currentLine = 0;
-        Stack<(int Line, string Name)> structureStack = new();
-        Stack<string> currentPath = new();
+        Stack<(int Line, string Name, int Index)> structureStack = new();
+        Stack<(string Name, int Index)> currentPath = new();
         int targetStart = -1;
         int targetEnd = -1;
         int targetNestingLevel = -1;
+        Dictionary<string, int> wildcardCounts = [];
+        // Using -1 as initial value since we'll increment before using. So the first value will be 0.
+        const int INITIAL_COUNT = -1;
 
         while (currentLine < lines.Count)
         {
@@ -73,17 +76,33 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
                 string structureName;
                 if (line.Contains('['))
                 {
-                    // Handle array index
+                    // Handle array index or wildcard
                     structureName = line.Split(':')[0].Trim();
+
+                    // For [*] structures, keep count of how many we've seen at this nesting level
+                    if (structureName == "[*]")
+                    {
+                        string currentNestingKey = string.Join("::", currentPath.Select(p => p.Name));
+                        if (!wildcardCounts.ContainsKey(currentNestingKey))
+                            wildcardCounts[currentNestingKey] = INITIAL_COUNT;
+                        wildcardCounts[currentNestingKey]++;
+
+                        structureStack.Push((currentLine, structureName, wildcardCounts[currentNestingKey]));
+                        currentPath.Push((structureName, wildcardCounts[currentNestingKey]));
+                    }
+                    else
+                    {
+                        structureStack.Push((currentLine, structureName, 0));
+                        currentPath.Push((structureName, 0));
+                    }
                 }
                 else
                 {
                     // Handle named structure
                     structureName = line.Split(structBeginSeparator, StringSplitOptions.RemoveEmptyEntries)[0].Trim();
+                    structureStack.Push((currentLine, structureName, 0));
+                    currentPath.Push((structureName, 0));
                 }
-
-                structureStack.Push((currentLine, structureName));
-                currentPath.Push(structureName);
 
                 // Check if current path matches target path
                 if (IsPathMatch(currentPath.Reverse().ToList(), pathComponents))
@@ -97,11 +116,9 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
             {
                 if (structureStack.Count > 0)
                 {
-                    // If we found our target structure and we're back at its nesting level
                     if (targetStart != -1 && structureStack.Count == targetNestingLevel)
                     {
                         targetEnd = currentLine;
-                        // If we're looking for a parameter, continue to find its containing structure
                         if (IsStructureOrArrayPath(pathComponents))
                         {
                             break;
@@ -113,24 +130,6 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
                         currentPath.Pop();
                 }
             }
-            // Handle parameter assignment
-            else if (line.Contains('='))
-            {
-                string paramName = line.Split('=')[0].Trim();
-                List<string> currentFullPath = currentPath.Reverse().ToList();
-                currentFullPath.Add(paramName);
-
-                if (IsPathMatch(currentFullPath, pathComponents))
-                {
-                    // For parameters, return the containing structure's positions
-                    if (structureStack.Count > 0)
-                    {
-                        var (Line, _) = structureStack.Peek();
-                        targetStart = Line;
-                        targetNestingLevel = structureStack.Count;
-                    }
-                }
-            }
 
             currentLine++;
         }
@@ -138,24 +137,39 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
         return (targetStart, targetEnd);
     }
 
-    private static bool IsPathMatch(List<string> currentPath, List<string> targetPath)
+    private static bool IsPathMatch(List<(string Name, int Index)> currentPath, List<string> targetPath)
     {
         if (currentPath.Count != targetPath.Count)
             return false;
 
         for (int i = 0; i < currentPath.Count; i++)
         {
-            string current = currentPath[i];
+            var current = currentPath[i];
             string target = targetPath[i];
 
-            // Handle array indices
-            if (current.StartsWith('[') && target.StartsWith('['))
+            // Handle wildcard structures with index
+            if (current.Name == "[*]")
             {
-                if (current != target)
+                // Extract index from target if it's a wildcard path component
+                if (target.StartsWith("[*]") && target.Contains(':'))
+                {
+                    int targetIndex = int.Parse(target.Split(':')[1]);
+                    if (current.Index != targetIndex)
+                        return false;
+                }
+                else if (target != "[*]")
+                {
+                    return false;
+                }
+            }
+            // Handle array indices
+            else if (current.Name.StartsWith('[') && target.StartsWith('['))
+            {
+                if (current.Name != target)
                     return false;
             }
             // Handle normal path components
-            else if (current != target)
+            else if (current.Name != target)
             {
                 return false;
             }

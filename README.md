@@ -117,7 +117,8 @@ The schema of the mod file lokks like that:
     - `defaultValue` - default value (optional)
     - `comment` - comment for the action (optional)
 
-Here is and example of using the `file` property in multiple actions:
+Here is an example of re-using the `file` property in multiple actions and resetting it to `Stalker2/Content/GameLite/GameData/EffectPrototypes.cfg`:
+
 ```json
 {
   "version": "1.0",
@@ -144,6 +145,47 @@ Here is and example of using the `file` property in multiple actions:
   ]
 }
 ```
+
+There is a special case for `path` property. In the config files, structures like `[*]` can be presented in the same parent structure multiple times. For instance:
+
+```plaintext
+GeneralNPC_Neutral_Stormtrooper_ItemGenerator : struct.begin {refurl=../ItemGeneratorPrototypes.cfg;refkey=[0]}
+   SID = GeneralNPC_Neutral_Stormtrooper_ItemGenerator
+   RefreshTime = 1d
+   ItemGenerator : struct.begin
+      [*] : struct.begin
+         Category = EItemGenerationCategory::SubItemGenerator
+         PossibleItems : struct.begin
+            [0] : struct.begin
+               ItemGeneratorPrototypeSID = GeneralNPC_Neutral_WeaponPistol
+               Chance = 0.4
+            struct.end
+            [1] : struct.begin
+               ItemGeneratorPrototypeSID = GeneralNPC_Consumables_Stormtrooper
+               Chance = 1
+            struct.end
+         struct.end           
+      struct.end
+      [*] : struct.begin
+         ...
+      struct.end
+      [*] : struct.begin
+         ...
+      struct.end
+   struct.end
+struct.end
+```
+
+In this case, the `path` property should be specified like this:
+```json
+{
+  "type": "Modify",
+  "file": "Stalker2/Content/GameLite/GameData/ItemGeneratorPrototypes/NPC_ItemGenerators.cfg",
+  "path": "GeneralNPC_Neutral_Stormtrooper_ItemGenerator::ItemGenerator::[*]:0::PossibleItems::[1]::Chance",
+  "value": "3"
+}
+```
+So because we can't distinguish structures `[*]` by name, we should add the index of the structure in the path. Indexes are zero-based.
 
 Depending on the `type` of the action, the mod can have different properties. Here are the possible types of actions:
 - Modify
