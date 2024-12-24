@@ -9,7 +9,7 @@ public record ModActionData
     public ActionType Type { get; init; }
 
     [JsonPropertyName("file")]
-    public string File { get; init; } = string.Empty;
+    public string? File { get; init; }
 
     [JsonPropertyName("path")]
     public string Path { get; init; } = string.Empty;

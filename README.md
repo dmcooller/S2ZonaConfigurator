@@ -106,10 +106,38 @@ The schema of the mod file lokks like that:
 - `author` - author of the mod (optional)
 - `actions` - list of actions to apply (required)
     - `type` - type of the action (required)
-    - `file` - path to the file to modify (required)
+    - `file` - path to the file to modify (required). It can be specified only in the first action of the mod. If the file is used in multiple actions, then the `file` property can be omitted in the next actions. The application will use the file path from the first action. It can be specified again if the file path should be changed aftern n actions.
     - `path` - path to the value/structure to modify (required)
     - `defaultValue` - default value (optional)
     - `comment` - comment for the action (optional)
+
+Here is and example of using the `file` property in multiple actions:
+```json
+{
+  "version": "1.0",
+  "description": "Test file path",
+  "author": "",
+  "actions": [
+    {
+      "type": "Modify",
+      "file": "Stalker2/Content/GameLite/GameData/CoreVariables.cfg",
+      "path": "DefaultConfig::RealToGameTimeCoef",
+      "value": 12,
+      "defaultValue": 24
+    },
+    {
+      "type": "Modify",
+      "path": "DefaultConfig::StartYear",
+      "value": 2024
+    },
+    {
+      "type": "RemoveStruct",
+      "file": "Stalker2/Content/GameLite/GameData/EffectPrototypes.cfg",
+      "path": "RadiationMechanics::MechanicsEffect::ConditionEffects::LightRadiation::ApplicableEffects"
+    }
+  ]
+}
+```
 
 Depending on the `type` of the action, the mod can have different properties. Here are the possible types of actions:
 - Modify

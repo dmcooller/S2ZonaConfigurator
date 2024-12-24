@@ -12,31 +12,28 @@
     },
     {
       "type": "Modify",
-      "file": "Stalker2/Content/GameLite/GameData/CoreVariables.cfg",
       "path": "DefaultConfig",
       "values": {
         "ALifeGridUpdateDelay": 6.0,
         "StartYear": 2024
-      }
+      },
+      "comment": "Use previous file to reduce line count"
     },
     {
       "type": "Add",
-      "file": "Stalker2/Content/GameLite/GameData/CoreVariables.cfg",
       "path": "DefaultConfig::NewStuff",
-      "value": 1.6,
-      "defaultValue": 0,
-      "comment": "Test"
+      "value": 1.6
     },
     {
       "type": "RemoveLine",
-      "file": "Stalker2/Content/GameLite/GameData/CoreVariables.cfg",
       "path": "DefaultConfig::StartMinute",
       "comment": "Test"
     },
     {
       "type": "RemoveStruct",
       "file": "Stalker2/Content/GameLite/GameData/EffectPrototypes.cfg",
-      "path": "RadiationMechanics::MechanicsEffect::ConditionEffects::LightRadiation::ApplicableEffects"
+      "path": "RadiationMechanics::MechanicsEffect::ConditionEffects::LightRadiation::ApplicableEffects",
+      "comment": "Use new file"
     },
     {
       "type": "Replace",

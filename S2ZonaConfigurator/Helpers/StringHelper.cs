@@ -1,8 +1,8 @@
 ﻿namespace S2ZonaConfigurator.Helpers;
 public static class StringHelper
 {
-    public static string NormalizeConfigPath(string configPath)
+    public static string? NormalizeConfigPath(string? configPath)
     {
-        return configPath.Replace('\\', '/').TrimStart('/');
+        return configPath?.Replace('\\', '/').TrimStart('/');
     }
 }

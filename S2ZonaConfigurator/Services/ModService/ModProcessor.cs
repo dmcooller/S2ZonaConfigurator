@@ -13,10 +13,9 @@ namespace S2ZonaConfigurator.Services.ModService;
 
 public class ModProcessor(ILogger<ModProcessor> logger, IOptions<AppConfig> config, IConfigParser parser) : IModProcessor
 {
-    private readonly ILogger<ModProcessor> _logger = logger; 
+    private readonly ILogger<ModProcessor> _logger = logger;
     private readonly AppConfig _config = config.Value;
     private readonly IConfigParser _parser = parser;
-
 
     private int _totalModsProcessed = 0;
     private int _modsSucess = 0;
@@ -31,14 +30,32 @@ public class ModProcessor(ILogger<ModProcessor> logger, IOptions<AppConfig> conf
             _totalModsProcessed++;
             Printer.PrintModHeader(Path.GetFileNameWithoutExtension(modFile), modData.Version, _totalModsProcessed);
 
+            string? currentFile = null;
+            string? previousFile = null;
+
             for (int i = 0; i < modData.Actions.Count; i++)
             {
-                string currentModFile = modFile;
                 var actionData = modData.Actions[i];
+
+                // Update current file only if explicitly specified in the action
+                if (!string.IsNullOrEmpty(actionData.File))
+                {
+                    previousFile = currentFile ?? actionData.File;
+                    currentFile = actionData.File;
+                }
+                else if (currentFile == null)
+                {
+                    throw new InvalidOperationException($"No file path specified for action in mod {modFile}");
+                }
+
+                // Save the file if the next action is for a different file
+                if (currentFile != previousFile)
+                    _parser.SaveFile();
+
                 Printer.PrintActionProgress(i + 1, modData.Actions.Count, actionData);
                 var action = new ConfigAction(
                     actionData.Type,
-                    actionData.File,
+                    currentFile,
                     actionData.Path,
                     actionData.Value,
                     actionData.Values,
@@ -48,8 +65,8 @@ public class ModProcessor(ILogger<ModProcessor> logger, IOptions<AppConfig> conf
 
                 _parser.ApplyAction(action);
 
-                // Save the file if the next action is for a different file or if this is the last action
-                if (currentModFile != modFile || i == modData.Actions.Count - 1)
+                // Save the file if this is the last action
+                if (i == modData.Actions.Count - 1)
                     _parser.SaveFile();
             }
 
