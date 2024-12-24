@@ -5,6 +5,7 @@ public class AppConfig
     public PathsConfig Paths { get; set; } = new();
     public GameConfig Game { get; set; } = new();
     public OptionsConfig Options { get; set; } = new();
+    public DiffConfig DiffConfig { get; set; } = new();
 }
 
 public class PathsConfig
@@ -27,4 +28,5 @@ public class OptionsConfig
 {
     public bool OutputChangelogFile { get; set; } = false;
     public bool CleanWorkDirectory { get; set; } = true;
+    public bool GenerateDiffReport { get; set; } = false;
 }

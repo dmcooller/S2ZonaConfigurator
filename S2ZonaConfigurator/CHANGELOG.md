@@ -1,5 +1,8 @@
 # Changelog 
 
+## [0.0.5]
+- Add a diff report generation feature
+- 
 ## [0.0.4]
 - Speed up the mods processing
 - Fix: Modify multiple values method may produce the wrong indentation in a modified line by duplicating a part of the key name

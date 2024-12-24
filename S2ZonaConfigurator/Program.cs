@@ -48,6 +48,16 @@ try
 
     modProcessor.PrintFinalSummary();
 
+    // Generate diff report
+    if (appConfig.Options.GenerateDiffReport)
+    {
+        var diffService = serviceProvider.GetRequiredService<IDiffService>();
+        string vanillaPath = Path.Combine(appConfig.Paths.WorkDirectory, appConfig.Paths.VanillaDirectory);
+        string modsPath = Path.Combine(appConfig.Paths.WorkDirectory, appConfig.Paths.ModifiedDirectory);
+        string reportPath = await diffService.GenerateDiffReport(vanillaPath, modsPath, "");
+        Printer.PrintInfoSection($"Diff report generated at: {reportPath}");
+    }
+
     // Create PAK file with mods
     await pakManager.CreateModPak();
 

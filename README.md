@@ -66,6 +66,8 @@ Just some more notes on the usage:
 - You can turn off a mod by adding `$` at the beginning of the mod file name. For example, `$super_mod.json` will be ignored
 - Mods can be placed in subfolders of the `mods` folder. The application will process them all
 - The application produces a changelog file in the `~mods` folder. You can turn it off by setting `OutputChangelogFile` to `false` in the `appsettings.Mine.json` file. (See the `appsettings.json` file for more details)
+- The application can generate a `diff` file with the changes made by the mods. You can turn it on by setting `GenerateDiffReport` to `true` in the `appsettings.Mine.json` file. You will get `diff_report.md` in the root folder. (See the `appsettings.json` file for more details)
+- `diff` output format can be changed in `DiffConfig->DiffFormat` in the `appsettings.Mine.json` file. Possible values are `GitHubMarkdown`, `SideBySideMarkdown`, `Unified`, `HTML`
 
 ## For Mod Makers
 
@@ -73,7 +75,8 @@ If anyone wants to create a mod supported by this application, please follow the
 
 ### Mod Format
 
-Always verify that the changes made by the application are correct. Use any diff tool to compare the original and modified files. I recommend turning off CleanWorkDirectory in the `appsettings.Mine.json` file to keep the modified files for further analysis.
+Always verify that the changes made by the application are correct. Use any diff tool to compare the original and modified files. 
+I recommend turning off CleanWorkDirectory in the `appsettings.Mine.json` file to keep the modified files for further analysis and turning on `GenerateDiffReport` to generate a diff file.`
 
 An example of a simple mod is in the `mods/$Example.json`.
 
