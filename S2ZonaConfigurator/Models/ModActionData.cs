@@ -5,7 +5,7 @@ namespace S2ZonaConfigurator.Models;
 public record ModActionData
 {
     [JsonPropertyName("type")]
-    [JsonConverter(typeof(JsonStringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter<ActionType>))]
     public ActionType Type { get; init; }
 
     [JsonPropertyName("file")]
