@@ -2,6 +2,7 @@
 
 ## [0.0.6]
 - Add mods conflict detection feature
+- Minor fixes and improvements
 
 ## [0.0.5]
 - Add a diff report generation feature

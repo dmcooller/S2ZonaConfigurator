@@ -7,9 +7,7 @@ using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
 
-
 namespace S2ZonaConfigurator.Services.ModService;
-
 
 public class ModProcessor(ILogger<ModProcessor> logger, IOptions<AppConfig> config, IConfigParser parser) : IModProcessor
 {
@@ -106,8 +104,8 @@ public class ModProcessor(ILogger<ModProcessor> logger, IOptions<AppConfig> conf
             catch (Exception)
             {
                 // Skip invalid mod files
-                _logger.LogWarning("Failed to parse mod file: {ModFile}. Skiping", modFile);
-                continue;
+                Printer.PrintErrorMessage($"Failed to parse mod file: {modFile}. Check the syntax and try again");
+                throw;
             }
         }
 
