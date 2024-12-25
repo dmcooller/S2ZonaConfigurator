@@ -1,5 +1,8 @@
 # Changelog 
 
+## [0.0.6]
+- Add mods conflict detection feature
+
 ## [0.0.5]
 - Add a diff report generation feature
 - Add an ability specify the file path only once in JSON mods if the file is used in multiple actions

@@ -63,9 +63,11 @@ That's it! You can now run the game with the mods applied.
 ### Advanced Usage
 
 Just some more notes on the usage:
+- See `appsettings.json` for more configuration options. It can be overridden by `appsettings.Mine.json`.
 - You can turn off a mod by adding `$` at the beginning of the mod file name. For example, `$super_mod.json` will be ignored
 - Mods can be placed in subfolders of the `mods` folder. The application will process them all
-- The application produces a changelog file in the `~mods` folder. You can turn it off by setting `OutputChangelogFile` to `false` in the `appsettings.Mine.json` file. (See the `appsettings.json` file for more details)
+- The application produces a changelog file in the `~mods` folder. You can turn it off by setting `OutputChangelogFile` to `false` in the `appsettings.Mine.json` file.
+- The application has a feature to detect mods conflicts and it's turned on by default. You can turn it off by setting `DetectModConflicts` to `false` in the `appsettings.Mine.json` file.
 
 #### Diff
 

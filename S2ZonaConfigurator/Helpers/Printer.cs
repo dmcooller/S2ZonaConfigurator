@@ -29,9 +29,7 @@ public static class Printer
     {
         PrintSegmentBorder();
 
-        if (color.HasValue)
-            Console.ForegroundColor = color.Value;
-        else Console.ForegroundColor = ConsoleColor.White;
+        Console.ForegroundColor = color ?? ConsoleColor.White;
 
         Console.WriteLine($"{text}");
 
@@ -76,7 +74,7 @@ public static class Printer
 
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.Write($"Action [{currentAction}/{totalActions}] ");
-        
+
         PrintColoredSegments(
         [
             ("Type: ", ConsoleColor.White),
@@ -92,13 +90,13 @@ public static class Printer
             ]);
         }
 
-        if (actionData.Type == ActionType.Replace)
+        if (actionData.Type == ActionType.Replace && actionData.Value != null)
         {
             PrintColoredSegments(
-                [
-                    ("Value: ", ConsoleColor.White),
-                    (actionData.Value.ToString(), ConsoleColor.DarkCyan)
-                ]);
+            [
+                ("Value: ", ConsoleColor.White),
+                (actionData.Value.ToString() ?? "null", ConsoleColor.DarkCyan)
+            ]);
         }
 
         Console.WriteLine();
@@ -153,4 +151,80 @@ public static class Printer
     public static void PrintErrorMessage(string message) =>
         PrintLine(message, ConsoleColor.Red);
 
+    public static void PrintConflicts(List<ModConflict> conflicts)
+    {
+        PrintSection("Mod Conflicts Detected", () =>
+        {
+            foreach (var conflict in conflicts)
+            {
+                // Print file information
+                PrintColoredSegments([
+                    ("Config File: ", ConsoleColor.White),
+                (conflict.ConfigFile, ConsoleColor.Yellow)
+                ]);
+                Console.WriteLine();
+
+                // Print conflict type
+                if (conflict.IsReplaceConflict)
+                {
+                    PrintColoredField("Conflict Type", "Replace conflict", ConsoleColor.Red);
+                    if (conflict.Path == null)
+                    {
+                        PrintLine("WARNING: File has both Replace and other modification types", ConsoleColor.Yellow);
+                    }
+                }
+                else
+                {
+                    PrintColoredField("Path", conflict.Path ?? "N/A", ConsoleColor.DarkCyan);
+                }
+
+                // Print Mod 1 details
+                PrintColoredSegments([
+                    ("Mod 1: ", ConsoleColor.White),
+                (Path.GetFileName(conflict.ModFile1), ConsoleColor.Magenta)
+                ]);
+                Console.WriteLine();
+
+                PrintColoredField("Action", conflict.Action1.ToString(), ConsoleColor.Green);
+                PrintValueDetails(conflict.Value1);
+
+                // Print Mod 2 details
+                PrintColoredSegments([
+                    ("Mod 2: ", ConsoleColor.White),
+                (Path.GetFileName(conflict.ModFile2), ConsoleColor.Magenta)
+                ]);
+                Console.WriteLine();
+
+                PrintColoredField("Action", conflict.Action2.ToString(), ConsoleColor.Green);
+                PrintValueDetails(conflict.Value2);
+
+                // Add separator between conflicts if not the last one
+                if (conflict != conflicts.Last())
+                {
+                    PrintLine(new string('-', 50), ConsoleColor.DarkGray);
+                }
+            }
+        });
+    }
+
+    private static void PrintValueDetails(object? value)
+    {
+        if (value == null) return;
+
+        if (value is Dictionary<string, object> dict)
+        {
+            if (dict.TryGetValue("old", out var oldValue))
+            {
+                PrintColoredField("Old Value", oldValue?.ToString() ?? "null", ConsoleColor.DarkYellow);
+            }
+            if (dict.TryGetValue("new", out var newValue))
+            {
+                PrintColoredField("New Value", newValue?.ToString() ?? "null", ConsoleColor.DarkYellow);
+            }
+        }
+        else
+        {
+            PrintColoredField("Value", value.ToString() ?? "null", ConsoleColor.DarkYellow);
+        }
+    }
 }

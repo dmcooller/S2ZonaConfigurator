@@ -29,4 +29,5 @@ public class OptionsConfig
     public bool OutputChangelogFile { get; set; } = false;
     public bool CleanWorkDirectory { get; set; } = true;
     public bool GenerateDiffReport { get; set; } = false;
+    public bool DetectModConflicts { get; set; } = true;
 }

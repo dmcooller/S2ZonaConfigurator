@@ -5,10 +5,10 @@ using Microsoft.Extensions.Logging;
 using S2ZonaConfigurator.Interfaces.Services;
 using S2ZonaConfigurator.Models;
 using S2ZonaConfigurator.Services.DiffService;
+using S2ZonaConfigurator.Services.ModConflictDetectorService;
 using S2ZonaConfigurator.Services.ModService;
 using S2ZonaConfigurator.Services.PakService;
 using System.Diagnostics.CodeAnalysis;
-
 
 namespace S2ZonaConfigurator;
 public static class StartupServices
@@ -60,5 +60,6 @@ public static class StartupServices
             services.AddTransient<IConfigParser, ConfigParser>();
             services.AddTransient<IModProcessor, ModProcessor>();
             services.AddTransient<IDiffService, DiffService>();
+            services.AddTransient<IModConflictDetector, ModConflictDetector>();
         });
 }

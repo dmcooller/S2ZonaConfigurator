@@ -6,7 +6,6 @@ using S2ZonaConfigurator.Interfaces.Services;
 using S2ZonaConfigurator.Models;
 using S2ZonaConfigurator.Services.ModService;
 
-
 var host = StartupServices.CreateHostBuilder(args).Build();
 
 try
@@ -17,6 +16,7 @@ try
     var pakManager = serviceProvider.GetRequiredService<IPakManager>();
     var configParser = serviceProvider.GetRequiredService<IConfigParser>();
     var modProcessor = serviceProvider.GetRequiredService<IModProcessor>();
+    var conflictDetector = serviceProvider.GetRequiredService<IModConflictDetector>();
 
     // Initialize services
     pakManager.Initialize();
@@ -28,6 +28,18 @@ try
         Printer.PrintInfoSection($"No mods to apply. Make sure you have mods in `{appConfig.Paths.ModsDirectory}` directory");
         return;
     }
+
+    // Check for conflicts
+    if (appConfig.Options.DetectModConflicts)
+    {
+        var conflicts = conflictDetector.DetectConflicts(modDataMap);
+        if (conflicts.Count != 0)
+        {
+            Printer.PrintConflicts(conflicts);
+            throw new InvalidOperationException("Mod conflicts detected. Please resolve conflicts before proceeding.");
+        }
+    }
+
     // Extract a list of required config file paths
     var requiredConfigs = ModProcessor.GetRequiredConfigFiles(modDataMap);
 
@@ -38,6 +50,7 @@ try
     }
 
     // Copy extracted files to Mods directory. We will modify these files
+
     pakManager.CopyExtractedFilesToMods();
 
     // Process mods
