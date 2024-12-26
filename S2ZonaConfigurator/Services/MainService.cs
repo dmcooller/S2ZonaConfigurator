@@ -14,7 +14,8 @@ public class MainService(
     IPakManager pakManager,
     IModProcessor modProcessor,
     IModConflictDetector conflictDetector,
-    IDiffService diffService) : IAppService
+    IDiffService diffService,
+    HelperService helper) : IAppService
 {
     private readonly ILogger<MainService> _logger = logger;
     private readonly AppConfig _appConfig = appConfig.Value;
@@ -22,6 +23,7 @@ public class MainService(
     private readonly IModProcessor _modProcessor = modProcessor;
     private readonly IModConflictDetector _conflictDetector = conflictDetector;
     private readonly IDiffService _diffService = diffService;
+    private readonly HelperService _helper = helper;
 
     public async Task RunAsync()
     {
@@ -31,10 +33,10 @@ public class MainService(
             _pakManager.Initialize();
 
             // Parse mod files
-            var modDataMap = _modProcessor.ParseModFiles(_appConfig.Paths.ModsDirectory);
+            var modDataMap = _modProcessor.ParseModFiles(_helper.GetJsonModsPath());
             if (modDataMap.Count == 0)
             {
-                Printer.PrintInfoSection($"No mods to apply. Make sure you have mods in `{_appConfig.Paths.ModsDirectory}` directory");
+                Printer.PrintInfoSection($"No mods to apply. Make sure you have mods in `{_helper.GetJsonModsPath()}` directory");
                 return;
             }
 
@@ -72,8 +74,8 @@ public class MainService(
             // Generate diff report
             if (_appConfig.Options.GenerateDiffReport)
             {
-                string vanillaPath = Path.Combine(_appConfig.Paths.WorkDirectory, _appConfig.Paths.VanillaDirectory);
-                string modsPath = Path.Combine(_appConfig.Paths.WorkDirectory, _appConfig.Paths.ModifiedDirectory);
+                string vanillaPath = _helper.GetWorkVanillaPath();
+                string modsPath = _helper.GetWorkModsPath();
                 string reportPath = await _diffService.GenerateDiffReport(vanillaPath, modsPath, "");
                 Printer.PrintInfoSection($"Diff report generated at: {reportPath}");
             }
@@ -87,7 +89,7 @@ public class MainService(
 
             // Generate Optional changelog
             if (_appConfig.Options.OutputChangelogFile)
-                _modProcessor.GenerateChangelog(_pakManager.GetOutputPakPath(), modDataMap);
+                _modProcessor.GenerateChangelog(_helper.GetOutputPakPath(), modDataMap);
         }
         catch (Exception ex)
         {

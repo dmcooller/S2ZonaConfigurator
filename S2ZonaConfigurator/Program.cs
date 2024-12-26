@@ -14,7 +14,7 @@ try
 }
 catch (Exception ex)
 {
-    Printer.PrintExceptionMessage(ex);
+    Printer.PrintExceptionSection(ex);
 }
 finally
 {

@@ -14,39 +14,46 @@ public class PakManager : IPakManager
 {
     private readonly ILogger<PakManager> _logger;
     private readonly AppConfig _config;
+    private readonly HelperService _helper;
     private DefaultFileProvider? _provider;
 
-    private readonly string _vanillaDir;
-    private readonly string _modifiedDir;
+    private readonly string _workDir;
+    private readonly string _workVanillaPath;
+    private readonly string _workModsPath;
+    private readonly string _gamePaksPath;
+    private readonly string _outputPakName;
+    private readonly string _gameModsPath;
 
-    public PakManager(ILogger<PakManager> logger, IOptions<AppConfig> config)
+    public PakManager(ILogger<PakManager> logger, IOptions<AppConfig> config, HelperService helper)
     {
         _logger = logger;
         _config = config.Value;
-        _vanillaDir = _config.Paths.VanillaDirectory;
-        _modifiedDir = _config.Paths.ModifiedDirectory;
+        _helper = helper;
 
+        _workDir = helper.GetWorkDirectoryPath();
+        _workVanillaPath = helper.GetWorkVanillaPath();
+        _workModsPath = helper.GetWorkModsPath();
+        _gamePaksPath = helper.GetGamePaksPath();
+        _outputPakName = helper.GetOutputPakName();
+        _gameModsPath = helper.GetGameModsPath();
+
+        helper.CleanWorkDirectory();
 
         InitializeDirectories();
     }
 
     private void InitializeDirectories()
     {
-        CleanWorkDirectory();
-        Directory.CreateDirectory(_config.Paths.WorkDirectory);
-
-        var vanillaPath = Path.Combine(_config.Paths.WorkDirectory, _vanillaDir);
-        var modsPath = Path.Combine(_config.Paths.WorkDirectory, _modifiedDir);
-
-        Directory.CreateDirectory(vanillaPath);
-        Directory.CreateDirectory(modsPath);
+        Directory.CreateDirectory(_workDir);
+        Directory.CreateDirectory(_workVanillaPath);
+        Directory.CreateDirectory(_workModsPath);
     }
 
     /// <summary>
     /// Initializes the PAK provider with the default PAK directory path (from the config)
     /// </summary>
     public void Initialize()
-        => Initialize(Path.Combine(_config.Game.GamePath, _config.Paths.PaksPath));
+        => Initialize(_gamePaksPath);
     
     public void Initialize(string path)
     {
@@ -89,17 +96,18 @@ public class PakManager : IPakManager
 
         TestAes();
 
+        string? filePathN = StringHelper.NormalizeConfigPath(filePath);
+        ArgumentNullException.ThrowIfNull(filePathN);
+
         try
         {
-            filePath = StringHelper.NormalizeConfigPath(filePath);
-
             // Get game file
-            var gameFile = _provider.Files.FirstOrDefault(f => f.Key.EndsWith(filePath));
+            var gameFile = _provider.Files.FirstOrDefault(f => f.Key.EndsWith(filePathN));
             if (gameFile.Value == null)
-                throw new FileNotFoundException($"File not found: {filePath}");
+                throw new FileNotFoundException($"File not found: {filePathN}");
 
             // Extract the file
-            var extractPath = Path.Combine(_config.Paths.WorkDirectory, _vanillaDir, filePath);
+            var extractPath = Path.Combine(_workVanillaPath, filePathN);
             Directory.CreateDirectory(Path.GetDirectoryName(extractPath)!);
 
             var data = await _provider.SaveAssetAsync(gameFile.Key);
@@ -110,15 +118,15 @@ public class PakManager : IPakManager
             }
             else
             {
-                _logger.LogWarning("Failed to extract data from {Path}", filePath);
+                _logger.LogWarning("Failed to extract data from {Path}", filePathN);
             }
         }
         catch (Exception ex)
         {
             if (ex is FileNotFoundException)
-                _logger.LogInformation("File not found for: {Path}", filePath);
+                _logger.LogInformation("File not found for: {Path}", filePathN);
             else
-                _logger.LogError(ex, "Failed to extract config file: {Path}", filePath);
+                _logger.LogError(ex, "Failed to extract config file: {Path}", filePathN);
             throw;
         }
     }
@@ -164,13 +172,11 @@ public class PakManager : IPakManager
 
     public void CopyExtractedFilesToMods()
     {
-        var vanillaPath = Path.Combine(_config.Paths.WorkDirectory, _vanillaDir);
-        var modsPath = Path.Combine(_config.Paths.WorkDirectory, _modifiedDir);
         // Copy all everything from the vanilla directory to the mods directory
-        foreach (var file in Directory.GetFiles(vanillaPath, "*", SearchOption.AllDirectories))
+        foreach (var file in Directory.GetFiles(_workVanillaPath, "*", SearchOption.AllDirectories))
         {
-            var relativePath = Path.GetRelativePath(vanillaPath, file);
-            var destPath = Path.Combine(modsPath, relativePath);
+            var relativePath = Path.GetRelativePath(_workVanillaPath, file);
+            var destPath = Path.Combine(_workModsPath, relativePath);
             Directory.CreateDirectory(Path.GetDirectoryName(destPath)!);
             File.Copy(file, destPath, true);
         }
@@ -181,9 +187,9 @@ public class PakManager : IPakManager
     {
         var fileName = new FString(_config.Paths.OutputPakName);
         var mountPoint = new FString("../../../");
-        var modsPath = Path.Combine(_config.Paths.WorkDirectory, _modifiedDir);
-        if (!Directory.Exists(modsPath))
-            throw new DirectoryNotFoundException($"Mods directory not found at {modsPath}");
+
+        if (!Directory.Exists(_workModsPath))
+            throw new DirectoryNotFoundException($"Mods directory not found at {_workModsPath}");
 
         string modsDestPath = Path.Combine(_config.Game.GamePath, _config.Paths.PaksPath, "~mods");
         Directory.CreateDirectory(modsDestPath);
@@ -192,7 +198,7 @@ public class PakManager : IPakManager
         try
         {
             // Files to add to the PAK 
-            var files = Directory.GetFiles(modsPath, "*", SearchOption.AllDirectories);
+            var files = Directory.GetFiles(_workModsPath, "*", SearchOption.AllDirectories);
             if (files.Length == 0)
             {
                 Printer.PrintInfoSection("No files to add to the PAK. PAK creation skipped");
@@ -203,7 +209,9 @@ public class PakManager : IPakManager
             foreach (var file in files)
             {
                 // Exclude the mods directory from the path
-                var fileEntryPath = new FString(StringHelper.NormalizeConfigPath(Path.GetRelativePath(modsPath, file)));
+                var normalizedPath = StringHelper.NormalizeConfigPath(Path.GetRelativePath(_workModsPath, file)) 
+                    ?? throw new InvalidOperationException($"Failed to normalize path: {file}");
+                var fileEntryPath = new FString(normalizedPath);
                 // Read the file content
                 var content = await File.ReadAllBytesAsync(file);
                 pakFile.AddEntry(fileEntryPath, content);
@@ -221,7 +229,7 @@ public class PakManager : IPakManager
         finally
         {
             if (_config.Options.CleanWorkDirectory)
-                CleanWorkDirectory();
+                _helper.CleanWorkDirectory();
         }
     }
 
@@ -231,28 +239,11 @@ public class PakManager : IPakManager
     /// </summary>
     public void DeleteOldMods()
     {
-        var gameModsPath = Path.Combine(_config.Game.GamePath, _config.Paths.PaksPath, "~mods");
-        var files = Directory.GetFiles(gameModsPath, $"{Path.GetFileNameWithoutExtension(_config.Paths.OutputPakName)}*", SearchOption.TopDirectoryOnly);
+        var files = Directory.GetFiles(_gameModsPath, $"{Path.GetFileNameWithoutExtension(_outputPakName)}*", SearchOption.TopDirectoryOnly);
         foreach (var file in files)
         {
             File.Delete(file);
             _logger.LogDebug("Deleted old mod file: {File}", file);
         }
-    }
-
-    public string GetOutputPakPath()
-    {
-        string modsDestPath = Path.Combine(_config.Game.GamePath, _config.Paths.PaksPath, "~mods");
-        return Path.Combine(modsDestPath, _config.Paths.OutputPakName);
-    }
-
-    private void CleanWorkDirectory()
-    {
-        var vanillaPath = Path.Combine(_config.Paths.WorkDirectory, _vanillaDir);
-        var modsPath = Path.Combine(_config.Paths.WorkDirectory, _modifiedDir);
-        if (Directory.Exists(vanillaPath))
-            Directory.Delete(vanillaPath, true);
-        if (Directory.Exists(modsPath))
-            Directory.Delete(modsPath, true);
     }
 }

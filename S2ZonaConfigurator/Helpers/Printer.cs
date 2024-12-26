@@ -142,8 +142,10 @@ public static class Printer
                 success ? ConsoleColor.Green : ConsoleColor.Red);
         });
 
-    public static void PrintExceptionMessage(Exception ex) =>
+    public static void PrintExceptionSection(Exception ex) =>
         PrintSection("Error", () => PrintLine(ex.Message, ConsoleColor.Red));
+    public static void PrintErrorSection(string message) =>
+        PrintSection("Error", () => PrintLine(message, ConsoleColor.Red));
 
     public static void PrintInfoSection(string message) =>
         PrintSection("Info", () => PrintLine(message, ConsoleColor.Green));

@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using S2ZonaConfigurator.Helpers;
 using S2ZonaConfigurator.Interfaces.Services;
 using S2ZonaConfigurator.Models;
@@ -9,17 +8,17 @@ using System.Text.Json;
 
 namespace S2ZonaConfigurator.Services.ModService;
 
-public class ModProcessor(ILogger<ModProcessor> logger, IOptions<AppConfig> config, IConfigParser parser) : IModProcessor
+public class ModProcessor(ILogger<ModProcessor> logger, HelperService helper, IConfigParser parser) : IModProcessor
 {
     private readonly ILogger<ModProcessor> _logger = logger;
-    private readonly AppConfig _config = config.Value;
     private readonly IConfigParser _parser = parser;
 
     private int _totalModsProcessed = 0;
     private int _modsSucess = 0;
     private int _modsFailed = 0;
 
-    private readonly string _pakNamePrefix = Path.GetFileNameWithoutExtension(config.Value.Paths.OutputPakName);
+    private readonly string _pakNamePrefix = Path.GetFileNameWithoutExtension(helper.GetOutputPakName());
+    private readonly string _gameModsPath = helper.GetGameModsPath();
 
     public void ProcessMod(string modFile, ModData modData)
     {
@@ -177,14 +176,11 @@ public class ModProcessor(ILogger<ModProcessor> logger, IOptions<AppConfig> conf
             string modName = Path.GetFileNameWithoutExtension(modFile);
             string modDirPath = Path.GetDirectoryName(modFile)!;
 
-            // Get the destination path (our ~mods folder)
-            string modsDestPath = Path.Combine(_config.Game.GamePath, _config.Paths.PaksPath, "~mods");
-
             // Try folder first
             string modFolderPath = Path.Combine(modDirPath, modName);
             if (Directory.Exists(modFolderPath))
             {
-                CopyFromFolder(modFolderPath, modsDestPath, _pakNamePrefix);
+                CopyFromFolder(modFolderPath, _gameModsPath, _pakNamePrefix);
                 _logger.LogInformation("Successfully copied additional files from folder for mod: {ModName}", modName);
             }
 
@@ -192,7 +188,7 @@ public class ModProcessor(ILogger<ModProcessor> logger, IOptions<AppConfig> conf
             string modZipPath = Path.Combine(modDirPath, $"{modName}.zip");
             if (File.Exists(modZipPath))
             {
-                ExtractFromZip(modZipPath, modsDestPath, _pakNamePrefix);
+                ExtractFromZip(modZipPath, _gameModsPath, _pakNamePrefix);
                 _logger.LogInformation("Successfully extracted additional files from ZIP for mod: {ModName}", modName);
             }
 

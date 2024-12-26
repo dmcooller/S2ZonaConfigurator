@@ -9,5 +9,4 @@ public interface IPakManager
     Task ExtractFromModPak(string pakFilePath, string outputPath);
     void DeleteOldMods();
     Task CreateModPak();
-    string GetOutputPakPath();
 }

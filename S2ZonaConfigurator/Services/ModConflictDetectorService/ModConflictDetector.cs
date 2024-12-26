@@ -173,6 +173,7 @@ public class ModConflictDetector : IModConflictDetector
             // AddStruct actions conflict if they try to add different structures
             ActionType.AddStruct => !AreStructuresEqual(action1.Structures, action2.Structures),
 
+            // Replace action is handled separately
             _ => false
         };
     }

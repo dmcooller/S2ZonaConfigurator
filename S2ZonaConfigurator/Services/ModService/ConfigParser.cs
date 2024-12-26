@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using S2ZonaConfigurator.Enums;
 using S2ZonaConfigurator.Helpers;
 using S2ZonaConfigurator.Interfaces.Services;
@@ -8,10 +7,10 @@ using System.Text.Json;
 
 namespace S2ZonaConfigurator.Services.ModService;
 
-public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConfig> config) : IConfigParser
+public partial class ConfigParser(ILogger<ConfigParser> logger, HelperService helper) : IConfigParser
 {
     private readonly ILogger<ConfigParser> _logger = logger;
-    private readonly AppConfig _config = config.Value;
+
     private string? _currentFile;
     private string? _currentActionFile;
     private List<string> _currentContent = [];
@@ -19,6 +18,7 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
     private const string STRUCT_BEGIN_LABEL = "struct.begin";
     private const string STRUCT_END_LABEL = "struct.end";
     private static readonly string[] structBeginSeparator = [": ", STRUCT_BEGIN_LABEL];
+    private readonly string _workModsPath = helper.GetWorkModsPath();
 
 
     [System.Text.RegularExpressions.GeneratedRegex(@"^\[(\d+)\]")]
@@ -250,7 +250,7 @@ public partial class ConfigParser(ILogger<ConfigParser> logger, IOptions<AppConf
         {
             if (_currentActionFile != action.File)
             {
-                LoadFile(Path.Combine(_config.Paths.WorkDirectory, _config.Paths.ModifiedDirectory, action.File));
+                LoadFile(Path.Combine(_workModsPath, action.File));
                 _currentActionFile = action.File;
             }
 

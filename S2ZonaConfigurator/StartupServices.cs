@@ -57,6 +57,7 @@ public static class StartupServices
         {
             services.AddAppConfiguration(args);
 
+            services.AddTransient<HelperService>();
             services.AddTransient<IPakManager, PakManager>();
             services.AddTransient<IConfigParser, ConfigParser>();
             services.AddTransient<IModProcessor, ModProcessor>();
