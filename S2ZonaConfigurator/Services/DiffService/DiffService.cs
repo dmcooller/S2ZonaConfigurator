@@ -50,7 +50,7 @@ public class DiffService : IDiffService
             var reportPath = Path.Combine(outputPath, $"diff_report{formatter.FileExtension}");
             await using var writer = new StreamWriter(reportPath, false, Encoding.UTF8);
 
-            await writer.WriteLineAsync("# Modified Files Diff Report");
+            await writer.WriteLineAsync("# Zona Diff Report");
             await writer.WriteLineAsync($"Generated on: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
             await writer.WriteLineAsync();
 

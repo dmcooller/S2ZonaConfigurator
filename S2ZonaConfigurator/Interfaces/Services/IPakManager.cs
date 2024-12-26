@@ -3,8 +3,10 @@
 public interface IPakManager
 {
     void Initialize();
+    void Initialize(string path);
     void CopyExtractedFilesToMods();
-    Task ExtractConfigFile(string configPath);
+    Task ExtractFile(string filePath);
+    Task ExtractFromModPak(string pakFilePath, string outputPath);
     Task CreateModPak();
     string GetOutputPakPath();
 }

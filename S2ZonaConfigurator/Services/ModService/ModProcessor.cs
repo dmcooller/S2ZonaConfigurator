@@ -112,9 +112,9 @@ public class ModProcessor(ILogger<ModProcessor> logger, IOptions<AppConfig> conf
         return modDataMap;
     }
 
-    public static HashSet<string> GetRequiredConfigFiles(Dictionary<string, ModData> modDataMap)
+    public static HashSet<string> GetRequiredFiles(Dictionary<string, ModData> modDataMap)
     {
-        Printer.PrintInfoSection("Extracting required config files from the game");
+        Printer.PrintInfoSection("Extracting required files from the game");
 
         var requiredFiles = new HashSet<string>();
 

@@ -42,18 +42,22 @@ public class PakManager : IPakManager
         Directory.CreateDirectory(modsPath);
     }
 
+    /// <summary>
+    /// Initializes the PAK provider with the default PAK directory path (from the config)
+    /// </summary>
     public void Initialize()
+        => Initialize(Path.Combine(_config.Game.GamePath, _config.Paths.PaksPath));
+    
+    public void Initialize(string path)
     {
         try
         {
             InitializeDirectories();
-
-            var packsPath = Path.Combine(_config.Game.GamePath, _config.Paths.PaksPath);
-            if (!Directory.Exists(packsPath))
-                throw new DirectoryNotFoundException($"Packs directory not found at {packsPath}");
+            if (!Directory.Exists(path))
+                throw new DirectoryNotFoundException($"Packs directory not found at {path}");
 
             _provider = new DefaultFileProvider(
-                directory: packsPath,
+                directory: path,
                 searchOption: SearchOption.TopDirectoryOnly,
                 isCaseInsensitive: false,
                 versions: new VersionContainer(EGame.GAME_UE5_1));
@@ -63,7 +67,7 @@ public class PakManager : IPakManager
             var key = new FAesKey(_config.Game.AesKey);
             _provider.SubmitKey(new FGuid(), key);
 
-            Printer.PrintInfoSection("PAK provider initialized successfully");
+            Printer.PrintInfoSection($"PAK provider for `{path}` initialized successfully");
         }
         catch (Exception ex)
         {
@@ -78,7 +82,7 @@ public class PakManager : IPakManager
             throw new Exception("Failed to mount PAK files. AES may be incorrect");
     }
 
-    public async Task ExtractConfigFile(string configPath)
+    public async Task ExtractFile(string filePath)
     {
         if (_provider == null)
             throw new InvalidOperationException("PAK provider not initialized");
@@ -87,15 +91,15 @@ public class PakManager : IPakManager
 
         try
         {
-            configPath = StringHelper.NormalizeConfigPath(configPath);
+            filePath = StringHelper.NormalizeConfigPath(filePath);
 
             // Get game file
-            var gameFile = _provider.Files.FirstOrDefault(f => f.Key.EndsWith(configPath));
+            var gameFile = _provider.Files.FirstOrDefault(f => f.Key.EndsWith(filePath));
             if (gameFile.Value == null)
-                throw new FileNotFoundException($"Config file not found: {configPath}");
+                throw new FileNotFoundException($"File not found: {filePath}");
 
             // Extract the file
-            var extractPath = Path.Combine(_config.Paths.WorkDirectory, _vanillaDir, configPath);
+            var extractPath = Path.Combine(_config.Paths.WorkDirectory, _vanillaDir, filePath);
             Directory.CreateDirectory(Path.GetDirectoryName(extractPath)!);
 
             var data = await _provider.SaveAssetAsync(gameFile.Key);
@@ -106,12 +110,54 @@ public class PakManager : IPakManager
             }
             else
             {
-                _logger.LogWarning("Failed to extract data from {Path}", configPath);
+                _logger.LogWarning("Failed to extract data from {Path}", filePath);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to extract config file: {Path}", configPath);
+            if (ex is FileNotFoundException)
+                _logger.LogInformation("File not found for: {Path}", filePath);
+            else
+                _logger.LogError(ex, "Failed to extract config file: {Path}", filePath);
+            throw;
+        }
+    }
+
+    public async Task ExtractFromModPak(string pakFilePath, string outputPath)
+    {
+        if (_provider == null)
+            throw new InvalidOperationException("PAK provider not initialized");
+
+        try
+        {
+            // Get all files in the PAK
+            foreach (var file in _provider.Files)
+            {
+                try
+                {
+                    var extractPath = Path.Combine(outputPath, file.Key);
+                    Directory.CreateDirectory(Path.GetDirectoryName(extractPath)!);
+
+                    var data = await _provider.SaveAssetAsync(file.Key);
+                    if (data != null)
+                    {
+                        await File.WriteAllBytesAsync(extractPath, data);
+                        _logger.LogDebug("Successfully extracted file: {Path}", file.Key);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Failed to extract data from {Path}", file.Key);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to extract file: {Path}", file.Key);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to extract files from mod PAK: {Path}", pakFilePath);
             throw;
         }
     }
@@ -157,7 +203,7 @@ public class PakManager : IPakManager
             foreach (var file in files)
             {
                 // Exclude the mods directory from the path
-                var fileEntryPath = new FString(StringHelper.NormalizeConfigPath(file.Replace(modsPath, "")));
+                var fileEntryPath = new FString(StringHelper.NormalizeConfigPath(Path.GetRelativePath(modsPath, file)));
                 // Read the file content
                 var content = await File.ReadAllBytesAsync(file);
                 pakFile.AddEntry(fileEntryPath, content);

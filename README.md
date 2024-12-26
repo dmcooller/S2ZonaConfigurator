@@ -74,19 +74,27 @@ Just some more notes on the usage:
 The application can generate a `diff` file with the changes made by the mods. You can turn it on by setting `GenerateDiffReport` to `true` in the `appsettings.Mine.json` file.
 
 Additionally, you can change:
-- The `diff` output format in `DiffConfig->DiffFormat` in the `appsettings.Mine.json` file. Possible values are `GitHubMarkdown`, `SideBySideMarkdown`, `Unified`, `HTML`.
+- The diff output format in `DiffConfig->DiffFormat` in the `appsettings.Mine.json` file. Possible values are `GitHubMarkdown`, `SideBySideMarkdown`, `Unified`, `HTML`.
 - The content size of the `diff` file in `DiffConfig->ContextLines` in the `appsettings.Mine.json` file. The default value is `3`. This will keep the `diff` file small and informative. But you can set it to `-1` to include the whole file content.
 
+#### App Mode
+
+The application currently supports two modes:
+- `Main`. This is the default mode. It will process all the mods in the `mods` folder and create a PAK file.
+- `PakModsDiff`. This mode is used to compare the mods in the `pak__mods` folder with the game files. It will generate a `diff` file with the changes made by the mods. 
+It can be useful to see the changes made by the pak mods. If there is a new file in the pak mod (like some asset), the app will try to search through all the files in the game's Paks folder, so it will take some time.
+
+You can change the mode in the `appsettings.Mine.json` file `AppConfig->Options->AppMode` property. `pak__mods` directory can be changed in the `AppConfig->Paths->PakModsDirectory` property.
 ## For Mod Makers
 
 If anyone wants to create a mod supported by this application, please follow the instructions below.
 
 ### Mod Format
 
-Always verify that the changes made by the application are correct. Use any diff tool to compare the original and modified files. 
-I recommend turning off CleanWorkDirectory in the `appsettings.Mine.json` file to keep the modified files for further analysis and turning on `GenerateDiffReport` to generate a diff file.`
+Always verify that the changes made by the application are correct. Use any diff tool or the built-in diff feature to compare the original and modified files. 
+I recommend turning off `CleanWorkDirectory` in the `appsettings.Mine.json` file to keep the modified files for further analysis and turning on `GenerateDiffReport` to generate a diff file.`
 
-An example of a simple mod is in the `mods/$Example.json`.
+An example of a simple mod is in the `mods/$Example.json`. Aloso check the mods in the [S2ZonaMods](https://github.com/dmcooller/S2ZonaMods) repository.
 
 The mod should be in JSON format. Here is an example of a simple mod:
 ```json
@@ -115,7 +123,7 @@ The schema of the mod file lokks like that:
 - `actions` - list of actions to apply (required)
     - `type` - type of the action (required)
     - `file` - path to the file to modify (required). It can be specified only in the first action of the mod. If the file is used in multiple actions, then the `file` property can be omitted in the next actions. The application will use the file path from the first action. It can be specified again if the file path should be changed aftern n actions.
-    - `path` - path to the value/structure to modify (required)
+    - `path` - path to the value/structure to modify (required), but optional for the `Replace` action
     - `defaultValue` - default value (optional)
     - `comment` - comment for the action (optional)
 
@@ -384,12 +392,12 @@ There are two ways to use it:
 
 #### Copy Assets
 
-If your mod requires additional files like textures, sounds, etc., you have two options to include them in the mod:
+If your mod requires additional things like textures, sounds, etc., packed in .ucas, and .utoc files, you have two options to include them in the mod:
 
 1. Create a folder with the same name as the mod file and place all the necessary files there. The application will copy all the files from the folder to the `~mods` folder.
 2. Create a zip archive with the same name as the mod file and place all the necessary files there. The application will extract all the files from the archive to the `~mods` folder.
 
-Imprtant thing is that a json mod file is necessary even if it doesn't change any config files. Just create an json file like this:
+The important thing is that a JSON mod file is necessary even if it doesn't change any config files. Just create an JSON file like this:
 ```json
 {
   "version": "1.0",
@@ -399,4 +407,4 @@ Imprtant thing is that a json mod file is necessary even if it doesn't change an
 }
 ```
 
-Keep in mind, that it won't pack the files into the .pak, .ucas, .utoc files. It will just copy them to the `~mods` folder. But it's actually fine, because we can't merge the assets files.
+Keep in mind, that it won't pack the files into the .pak, .ucas, .utoc files. It will just copy them to the `~mods` folder. But that's fine because we can't merge the assets files.

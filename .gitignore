@@ -367,3 +367,4 @@ appsettings.Mine.json
 
 S2ZonaConfigurator/mods/*
 !S2ZonaConfigurator/mods/$Example.json
+S2ZonaConfigurator/pak_mods/*

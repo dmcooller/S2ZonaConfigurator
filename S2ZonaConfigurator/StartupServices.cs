@@ -2,8 +2,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using S2ZonaConfigurator.Enums;
+using S2ZonaConfigurator.Interfaces;
 using S2ZonaConfigurator.Interfaces.Services;
 using S2ZonaConfigurator.Models;
+using S2ZonaConfigurator.Services;
 using S2ZonaConfigurator.Services.DiffService;
 using S2ZonaConfigurator.Services.ModConflictDetectorService;
 using S2ZonaConfigurator.Services.ModService;
@@ -40,9 +44,6 @@ public static class StartupServices
         });
 
         services.Configure<AppConfig>(configuration.GetSection("AppConfig"));
-        services.Configure<PathsConfig>(configuration.GetSection("AppConfig:Paths"));
-        services.Configure<GameConfig>(configuration.GetSection("AppConfig:Game"));
-        services.Configure<DiffConfig>(configuration.GetSection("AppConfig:DiffConfig"));
 
         // Register IConfiguration for DI
         services.AddSingleton(configuration);
@@ -61,5 +62,21 @@ public static class StartupServices
             services.AddTransient<IModProcessor, ModProcessor>();
             services.AddTransient<IDiffService, DiffService>();
             services.AddTransient<IModConflictDetector, ModConflictDetector>();
+
+
+            services.AddTransient<PakModsDiffService>();
+            services.AddTransient<MainService>();
+
+            // Register the IAppService implementation based on the AppConfig.PakModsDiffMode value
+            services.AddTransient<IAppService>(serviceProvider =>
+            {
+                var options = serviceProvider.GetRequiredService<IOptions<AppConfig>>();
+   
+                var isPakModsDiffMode = options.Value.Options.AppMode == AppMode.PakModsDiff;
+
+                return isPakModsDiffMode
+                    ? serviceProvider.GetRequiredService<PakModsDiffService>()
+                    : serviceProvider.GetRequiredService<MainService>();
+            });
         });
 }

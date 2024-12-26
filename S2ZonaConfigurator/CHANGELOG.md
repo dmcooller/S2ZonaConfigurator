@@ -1,7 +1,8 @@
 # Changelog 
 
 ## [0.0.6]
-- Add mods conflict detection feature
+- Add JSON mods conflict detection feature
+- Add an additional mode to be able to generate a diff report between PAK mods and the original game files
 - Minor fixes and improvements
 
 ## [0.0.5]
