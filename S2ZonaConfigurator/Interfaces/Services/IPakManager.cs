@@ -7,6 +7,7 @@ public interface IPakManager
     void CopyExtractedFilesToMods();
     Task ExtractFile(string filePath);
     Task ExtractFromModPak(string pakFilePath, string outputPath);
+    void DeleteOldMods();
     Task CreateModPak();
     string GetOutputPakPath();
 }

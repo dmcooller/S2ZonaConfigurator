@@ -1,12 +1,13 @@
 # Changelog 
 
 ## [0.0.6]
-- Add JSON mods conflict detection feature
-- Add an additional mode to be able to generate a diff report between PAK mods and the original game files
+- Add JSON mods conflict detection feature. Can be changed by setting `DetectModConflicts` in the settings file. Turned on by default
+- Add `PakModsDiff` mode to be able to generate a diff report between PAK mods and the original game files
+- Add `DeleteOldMods` option to be able to clean old mod files before generating new ones
 - Minor fixes and improvements
 
 ## [0.0.5]
-- Add a diff report generation feature
+- Add a diff report generation feature. Can be turned on by setting `GenerateDiffReport` to `true` in the settings file
 - Add an ability specify the file path only once in JSON mods if the file is used in multiple actions
 - Fix: Parsing `[*]` structures
 - Fix: Some issues when last actions may not be applied in mods where multiple files are used

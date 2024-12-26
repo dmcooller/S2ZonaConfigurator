@@ -225,6 +225,21 @@ public class PakManager : IPakManager
         }
     }
 
+    /// <summary>
+    /// Cleans up old mod files from the mods directory
+    /// It removes all files that starts with the OutputPakName
+    /// </summary>
+    public void DeleteOldMods()
+    {
+        var gameModsPath = Path.Combine(_config.Game.GamePath, _config.Paths.PaksPath, "~mods");
+        var files = Directory.GetFiles(gameModsPath, $"{Path.GetFileNameWithoutExtension(_config.Paths.OutputPakName)}*", SearchOption.TopDirectoryOnly);
+        foreach (var file in files)
+        {
+            File.Delete(file);
+            _logger.LogDebug("Deleted old mod file: {File}", file);
+        }
+    }
+
     public string GetOutputPakPath()
     {
         string modsDestPath = Path.Combine(_config.Game.GamePath, _config.Paths.PaksPath, "~mods");

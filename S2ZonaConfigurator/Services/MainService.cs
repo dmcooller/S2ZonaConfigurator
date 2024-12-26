@@ -59,7 +59,6 @@ public class MainService(
             }
 
             // Copy extracted files to Mods directory. We will modify these files
-
             _pakManager.CopyExtractedFilesToMods();
 
             // Process mods
@@ -78,6 +77,10 @@ public class MainService(
                 string reportPath = await _diffService.GenerateDiffReport(vanillaPath, modsPath, "");
                 Printer.PrintInfoSection($"Diff report generated at: {reportPath}");
             }
+
+            // Delete old mods from the game directory
+            if (_appConfig.Options.DeleteOldMods)
+                _pakManager.DeleteOldMods();
 
             // Create PAK file with mods
             await _pakManager.CreateModPak();

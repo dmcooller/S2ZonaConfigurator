@@ -68,6 +68,8 @@ Just some more notes on the usage:
 - Mods can be placed in subfolders of the `mods` folder. The application will process them all
 - The application produces a changelog file in the `~mods` folder. You can turn it off by setting `OutputChangelogFile` to `false` in the `appsettings.Mine.json` file.
 - The application has a feature to detect mods conflicts and it's turned on by default. You can turn it off by setting `DetectModConflicts` to `false` in the `appsettings.Mine.json` file.
+- The application can delete old mods before generating new ones. You can turn it on by setting `DeleteOldMods` to `true` in the `appsettings.Mine.json` file.
+It will delete all the files in the `~mods` folder starting with value specified in `OutputPakName`. The default value is `ZonaBundle`. It can be useful if you turn on and off mods with additional files like assets.
 
 #### Diff
 

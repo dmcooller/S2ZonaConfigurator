@@ -32,6 +32,7 @@ public class OptionsConfig
     public AppMode AppMode { get; set; } = AppMode.Main;
     public bool OutputChangelogFile { get; set; } = false;
     public bool CleanWorkDirectory { get; set; } = true;
+    public bool DeleteOldMods { get; set; } = false;
     public bool GenerateDiffReport { get; set; } = false;
     public bool DetectModConflicts { get; set; } = true;
 }
