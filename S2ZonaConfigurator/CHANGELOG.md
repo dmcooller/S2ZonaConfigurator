@@ -1,6 +1,6 @@
 # Changelog 
 
-## [0.0.6]
+## [0.1.0]
 - Add JSON mods conflict detection feature. Can be changed by setting `DetectModConflicts` in the settings file. Turned on by default
 - Add `PakModsDiff` mode to be able to generate a diff report between PAK mods and the original game files
 - Add `DeleteOldMods` option to be able to clean old mod files before generating new ones

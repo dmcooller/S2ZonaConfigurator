@@ -4,7 +4,7 @@
 
 The application's primary goal is to simplify the process of applying mods to the game. The main disadvantages of the current modding system are:
 - One mod can overwrite the changes of another mod.
-- After every game update, mod makers need to update their mods to work with the new version of the game.
+- After every game update, mod makers have to update their mods to work with the new version of the game.
 
 This tool solves these problems by extracting fresh config files from the game and packing all the mods into a single PAK file.
 
@@ -12,8 +12,12 @@ This tool solves these problems by extracting fresh config files from the game a
 - Support mods in JSON format
 - Automatically unpack necessary config files from the game
 - Eliminate the mods conflicts by packing them into a single PAK file
+- You will be warned if JSON mods have conflicts with each other
+- Generate a single PAK file with all the mods
 - Copy additional files like assets to the **~mods** folder
-- Generate a changelog file (optional)
+- Generate a changelog file
+- Generate a diff file with the changes made by the JSON mods in a format of your choice
+- Generate a diif file with the changes in pak mods
 
 ## For Users
 
@@ -69,7 +73,7 @@ Just some more notes on the usage:
 - The application produces a changelog file in the `~mods` folder. You can turn it off by setting `OutputChangelogFile` to `false` in the `appsettings.Mine.json` file.
 - The application has a feature to detect mods conflicts and it's turned on by default. You can turn it off by setting `DetectModConflicts` to `false` in the `appsettings.Mine.json` file.
 - The application can delete old mods before generating new ones. You can turn it on by setting `DeleteOldMods` to `true` in the `appsettings.Mine.json` file.
-It will delete all the files in the `~mods` folder starting with value specified in `OutputPakName`. The default value is `ZonaBundle`. It can be useful if you turn on and off mods with additional files like assets.
+It will delete all the files in the `~mods` folder starting with value specified in `OutputPakName`. The default value is `ZonaBundle`. It can be useful if you use mods with additional files like assets.
 
 #### Diff
 
@@ -96,7 +100,7 @@ If anyone wants to create a mod supported by this application, please follow the
 Always verify that the changes made by the application are correct. Use any diff tool or the built-in diff feature to compare the original and modified files. 
 I recommend turning off `CleanWorkDirectory` in the `appsettings.Mine.json` file to keep the modified files for further analysis and turning on `GenerateDiffReport` to generate a diff file.`
 
-An example of a simple mod is in the `mods/$Example.json`. Aloso check the mods in the [S2ZonaMods](https://github.com/dmcooller/S2ZonaMods) repository.
+An example of a simple mod can be found in the `mods/$Example.json`. Aloso check the mods in the [S2ZonaMods](https://github.com/dmcooller/S2ZonaMods) repository.
 
 The mod should be in JSON format. Here is an example of a simple mod:
 ```json
@@ -233,6 +237,8 @@ Adds a new property to the structure
       "value": 1.6
     }
  ```
+ This will add a new property `NewStuff` with the value `1.6` to the `DefaultConfig` structure.
+
 #### RemoveLine
 Removes a line from the file
 - `path` - one needs to specify the path to the line to remove. Example:
@@ -243,6 +249,7 @@ Removes a line from the file
       "path": "DefaultConfig::StartMinute"
     }
  ```
+This will remove the `StartMinute` property from the `DefaultConfig` structure.
 
 #### `RemoveStruct`
 Removes a structure from the file
@@ -254,6 +261,7 @@ Removes a structure from the file
       "path": "RadiationMechanics::MechanicsEffect::ConditionEffects::LightRadiation::ApplicableEffects"
     }
  ```
+This will remove the `ApplicableEffects` structure from the `LightRadiation` structure.
 
 #### AddStruct
 Adds a new structure to the file. There are different ways to add a new structure:
